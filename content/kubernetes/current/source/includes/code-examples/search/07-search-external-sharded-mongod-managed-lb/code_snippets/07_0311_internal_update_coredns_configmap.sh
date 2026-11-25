@@ -75,6 +75,21 @@ for SHARD_IDX in $(seq 0 $((SHARD_COUNT - 1))); do
   done
 done
 
+# Map the published Envoy hostnames to the proxy Services, the way customer
+# DNS would. Name rewrites don't depend on Service IPs, so the Services can
+# be created later by the operator.
+SVC_DOMAIN="${MDB_NS}.svc.cluster.local"
+REWRITE_RULES=""
+for MAPPING in \
+  "${MDB_PROXY_HOST_SHARD_0%:*} ${MDB_PROXY_SVC_SHARD_0}" \
+  "${MDB_PROXY_HOST_SHARD_1%:*} ${MDB_PROXY_SVC_SHARD_1}" \
+  "${MDB_PROXY_HOST_ROUTER%:*} ${MDB_PROXY_SVC_ROUTER}"; do
+  read -r EXT_HOSTNAME PROXY_SVC <<< "${MAPPING}"
+  echo "Mapping ${EXT_HOSTNAME} -> ${PROXY_SVC}.${SVC_DOMAIN}"
+  REWRITE_RULES="${REWRITE_RULES}
+        rewrite name exact ${EXT_HOSTNAME} ${PROXY_SVC}.${SVC_DOMAIN}"
+done
+
 echo ""
 echo "Applying CoreDNS ConfigMap with all host entries..."
 
@@ -90,7 +105,7 @@ data:
         health {
            lameduck 5s
         }
-        ready
+        ready${REWRITE_RULES}
         kubernetes cluster.local in-addr.arpa ip6.arpa {
            pods insecure
            fallthrough in-addr.arpa ip6.arpa
@@ -114,4 +129,4 @@ YAML
 kubectl --context "${K8S_CTX}" -n kube-system rollout restart deployment coredns
 kubectl --context "${K8S_CTX}" -n kube-system \
   rollout status deployment coredns --timeout=60s
-echo "[ok] CoreDNS updated with mongos and shard host entries"
+echo "[ok] CoreDNS updated with mongos, shard, and Envoy host entries"

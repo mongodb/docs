@@ -13,6 +13,7 @@ prepare_snippets
 
 run 03_0410_run_mongodb_tools_pod.sh
 run_for_output 03_0420_import_movies_mflix_database.sh
+run_for_output 03_0425_internal_wait_for_search_index_commands.sh
 run 03_0430_create_search_index.sh
 run 03_0435_create_vector_search_index.sh
 # don't create auto embedding vector search if it's not community deployment.

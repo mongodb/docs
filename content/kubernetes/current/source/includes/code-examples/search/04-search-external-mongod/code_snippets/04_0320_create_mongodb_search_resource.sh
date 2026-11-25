@@ -2,7 +2,7 @@ kubectl apply --context "${K8S_CTX}" -n "${MDB_NS}" -f - <<EOF
 apiVersion: mongodb.com/v1
 kind: MongoDBSearch
 metadata:
-  name: ${MDB_SEARCH_RESOURCE_NAME:-mdbs}
+  name: ${MDB_SEARCH_RESOURCE_NAME}
 spec:
   source:
     external:

@@ -39,9 +39,10 @@ spec:
       # and configures Envoy proxy
       loadBalancer:
         managed:
-          externalHostname: ${MDB_SEARCH_RESOURCE_NAME}-search-0-{shardName}-proxy-svc.${MDB_NS}.svc.cluster.local
-          # Shard-agnostic endpoint the mongos routers use to reach mongot.
-          routerHostname: ${MDB_SEARCH_RESOURCE_NAME}-search-0-proxy-svc.${MDB_NS}.svc.cluster.local
+          # Hostnames only (no port); Envoy matches them as the TLS SNI
+          externalHostname: "${MDB_SEARCH_EXTERNAL_HOSTNAME}"
+          # Shard-agnostic hostname the mongos routers use to reach mongot
+          routerHostname: "${MDB_SEARCH_ROUTER_HOSTNAME}"
       resourceRequirements:
         limits:
           cpu: "2"

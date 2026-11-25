@@ -12,7 +12,7 @@ export const toc: L1TocItem[] = [
         group: true,
         versionDropdown: true,
         versions: {
-          excludes: ['upcoming', 'current', 'v1.9', 'v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14'],
+          excludes: ['upcoming', 'current', 'v1.9', 'v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14', 'v1.15'],
         },
         items: [
           {
@@ -411,7 +411,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'mck',
                     url: '/docs/kubernetes/:version/tutorial/secure-oidc-auth',
                     versions: {
-                      includes: ['current', 'upcoming'],
+                      includes: ['current', 'upcoming', 'v1.15'],
                     },
                   },
                 ],
@@ -457,7 +457,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'mck',
                     url: '/docs/kubernetes/:version/tutorial/manage-database-users-oidc',
                     versions: {
-                      includes: ['current', 'upcoming'],
+                      includes: ['current', 'upcoming', 'v1.15'],
                     },
                   },
                 ],
@@ -596,7 +596,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'mck',
                     url: '/docs/kubernetes/:version/tutorial/multi-cluster-secure-oidc-auth',
                     versions: {
-                      includes: ['current', 'upcoming'],
+                      includes: ['current', 'upcoming', 'v1.15'],
                     },
                   },
                 ],
@@ -854,7 +854,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/reference/mongodb-role-specification',
                 versions: {
-                  includes: ['current', 'upcoming'],
+                  includes: ['current', 'upcoming', 'v1.15'],
                 },
               },
               {
@@ -953,7 +953,7 @@ export const toc: L1TocItem[] = [
         group: true,
         versionDropdown: true,
         versions: {
-          includes: ['upcoming', 'current', 'v1.9', 'v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14'],
+          includes: ['upcoming', 'current', 'v1.9', 'v1.10', 'v1.11', 'v1.12', 'v1.13', 'v1.14', 'v1.15'],
         },
         items: [
           {
@@ -1121,7 +1121,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/tutorial/manage-om-license',
                 versions: {
-                  includes: ['upcoming'],
+                  includes: ['upcoming', 'current'],
                 },
               },
               {
@@ -1155,7 +1155,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/tutorial/deploy-om-external-appdb-multi-cluster',
                 versions: {
-                  includes: ['upcoming'],
+                  includes: ['upcoming', 'current', 'v1.15'],
                 },
               },
               {
@@ -1297,7 +1297,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/tutorial/migrate-standalone-to-replica-set',
                 versions: {
-                  includes: ['upcoming'],
+                  includes: ['upcoming', 'current', 'v1.15'],
                 },
               },
               {

@@ -1,0 +1,136 @@
+.. _k8s-migration-om-to-k8s-dry-run:
+
+===========================================
+Validate Migration Readiness with a Dry Run
+===========================================
+
+.. meta::
+   :description: Use the dry-run annotation to validate connectivity and credentials before |k8s-op-short| takes ownership of an Ops Manager or Cloud Manager deployment during migration to Kubernetes.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The ``kubectl mongodb`` plugin always adds the
+``mongodb.com/migration-dry-run: true`` annotation to the
+resource it generates for migrating a deployment into
+Kubernetes. While that annotation is present,
+|k8s-op-short| makes no automation config changes. It only
+validates connectivity and credentials, so you can fix
+problems and re-run as many times as you need before
+|k8s-op-short| takes ownership of the deployment.
+
+About this Task
+----------------
+
+- |k8s-op-short| creates one Job per ``MongoDB`` resource, named
+  ``<resourceName>-connectivity-check``. The Job dials
+  every external member and authenticates against it. It
+  deletes itself using ``ttlSecondsAfterFinished``, and the
+  next reconcile re-creates it, so re-validation after a fix
+  is automatic. You do not need to trigger it manually.
+
+- The dry run checks Kubernetes-to-virtual-machine
+  reachability (DNS, TLS, firewalls, and member addresses) and
+  credentials, including the ``__system`` role on the
+  ``local`` database, and the CA when TLS is enabled.
+
+- The dry run does not check virtual-machine-to-Kubernetes
+  inbound connectivity. Verify that direction yourself, either
+  through the |mms| UI monitoring status for the deployment or
+  by running ``rs.status()`` from a virtual machine member and
+  confirming it can reach the Kubernetes Pods.
+
+- The plugin and |k8s-op-short| version check runs regardless
+  of whether the dry-run annotation is present.
+
+Before you Begin
+-----------------
+
+- A generated ``MongoDB`` custom resource with the
+  ``mongodb.com/migration-dry-run: true`` annotation still
+  present. To learn how to generate this resource, see
+  :ref:`k8s-migration-om-to-k8s-replica-set`.
+
+- If the deployment uses TLS, the member certificates and CA
+  material described in
+  :ref:`k8s-migration-om-to-k8s-tls`.
+
+- The |k8s-op-short| ``ServiceAccount`` has ``batch/jobs``
+  permissions (``create``, ``get``, ``list``, ``watch``, and
+  ``delete``). Without this grant, |k8s-op-short| cannot create
+  the connectivity validator Job at all.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Apply the resource and let the dry run run.
+
+      Apply the ``MongoDB`` custom resource with the dry-run
+      annotation still set. |k8s-op-short| creates the
+      ``<resourceName>-connectivity-check`` Job and reports
+      progress through ``status.phase`` and the
+      ``NetworkConnectivityVerified`` condition.
+
+      While the Job runs, ``status.phase`` reads
+      ``ConnectivityCheckRunning``.
+
+   .. step:: Read the result.
+
+      Read
+      ``status.conditions[type=NetworkConnectivityVerified]``:
+
+      .. include:: /includes/facts/fact-migration-connectivity-conditions.rst
+
+   .. step:: Fix problems and re-run, if needed.
+
+      Fix connectivity or credential problems in Kubernetes or
+      in the |mms| UI, as needed. You do not need to delete or
+      re-apply anything: the next reconcile re-creates the
+      validator Job automatically.
+
+      If the dry run appears stuck, delete the
+      ``<resourceName>-connectivity-check`` Job. The next
+      reconcile re-creates it.
+
+      A missing ``batch/jobs`` RBAC grant on the
+      |k8s-op-short| ``ServiceAccount`` prevents the Job from
+      being created in the first place, so no condition or
+      Job appears at all in that case. Failures that occur
+      before the Job starts surface as reasons
+      ``OperatorImageUnknown``, ``BuildStatefulSetOptions``,
+      ``AgentCertSecretFailed``, or ``AgentCertSubject`` instead
+      of the exit-code reasons in the table above.
+
+   .. step:: Remove the dry-run annotation to proceed.
+
+      When the ``NetworkConnectivityVerified`` condition is
+      ``True`` with reason ``NetworkValidationPassed``, remove
+      the annotation:
+
+      .. code-block:: sh
+
+         kubectl annotate mdb <resourceName> \
+           mongodb.com/migration-dry-run-
+
+      .. important::
+
+         Removing the dry-run annotation is the point at which
+         |k8s-op-short| takes ownership of the |mms| or Cloud
+         Manager project. Treat this as the point of no return
+         for the connectivity and credential state you just
+         validated.
+
+Learn More
+----------
+
+- :ref:`k8s-migration-om-to-k8s-replica-set`
+- :ref:`k8s-migration-om-to-k8s-tls`
+- :ref:`k8s-migration-om-to-kubernetes`

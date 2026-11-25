@@ -19,8 +19,9 @@ spec:
     size: 2048
   usages:
     - server auth
+  # Covers every per-shard hostname and the router hostname
   dnsNames:
-    - "*.${MDB_NS}.svc.cluster.local"
+    - "*.${MDB_SEARCH_EXTERNAL_DOMAIN}"
   issuerRef:
     name: ${MDB_TLS_CA_ISSUER}
     kind: ClusterIssuer

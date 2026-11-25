@@ -9,7 +9,7 @@ export MDB_EXTERNAL_CLUSTER_NAME="mdb-mc-rs"
 export MDB_SEARCH_RESOURCE_NAME="ext-rs"
 
 # MongoDB version used by the optional query tools pod.
-export MDB_VERSION="8.2.6-ent"
+export MDB_VERSION="8.3.13-ent"
 
 # Existing search-sync-source user password.
 export MDB_SEARCH_SYNC_USER_PASSWORD="<search-sync-source password>"

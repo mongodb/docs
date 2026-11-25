@@ -61,8 +61,8 @@ spec:
   mongos:
     additionalMongodConfig:
       setParameter:
-        mongotHost: ${MDB_PROXY_HOST_SHARD_0}
-        searchIndexManagementHostAndPort: ${MDB_PROXY_HOST_SHARD_0}
+        mongotHost: ${MDB_PROXY_HOST_ROUTER}
+        searchIndexManagementHostAndPort: ${MDB_PROXY_HOST_ROUTER}
         skipAuthenticationToSearchIndexManagementServer: false
         skipAuthenticationToMongot: false
         searchTLSMode: requireTLS

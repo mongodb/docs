@@ -1,0 +1,145 @@
+:noprevnext:
+
+.. _k8s-manage-db-users-scram:
+
+================================================
+Manage Database Users Using SCRAM Authentication
+================================================
+
+.. meta::
+   :description: Manage database users with SCRAM authentication using Kubernetes Operator for MongoDB deployments, including creating and deleting users.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The |k8s-op-short| supports managing database users using SCRAM
+authentication on MongoDB deployments.
+
+Considerations
+--------------
+
+Supported SCRAM Implementations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you specify ``SCRAM`` as the authentication mechanism, the
+implementation of SCRAM used depends upon:
+
+- The version of MongoDB and
+- If the database is the {+appdb+} or another database.
+
+.. list-table::
+   :widths: 40 30 30
+   :header-rows: 1
+
+   * - MongoDB Version
+     - Database
+     - SCRAM Implementation
+   * - 7.0 or later
+     - Any except {+appdb+}
+     - ``SCRAM-SHA-256``
+   * - Any
+     - {+appdb+}
+     - ``SCRAM-SHA-1``
+
+
+Supported Authentication Mechanisms
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/supported-auth-mechanisms.rst
+
+After enabling SCRAM authentication, you can add SCRAM users using the
+|mms| interface or by configuring the users in the |k8s-crd| based on the :ref:`mongodbuser-specification`.
+
+Prerequisites
+-------------
+
+Before managing database users, you must deploy a
+:doc:`standalone </tutorial/deploy-standalone>`,
+:doc:`replica set </tutorial/deploy-replica-set>`, or
+:doc:`sharded cluster </tutorial/deploy-sharded-cluster>`.
+
+For |multi-clusters|, you must deploy replica sets.
+See :ref:`Deploy Multiple Clusters  <multi-cluster>`.
+
+.. _add-db-user-scram:
+
+Add a Database User
+-------------------
+
+.. important:: 
+  
+   You cannot assign the same database user 
+   to more than one MongoDB
+   :doc:`standalone </tutorial/deploy-standalone>`,
+   :doc:`replica set </tutorial/deploy-replica-set>`, or
+   :doc:`sharded cluster </tutorial/deploy-sharded-cluster>`.
+   This includes database users with 
+   :guilabel:`admin` roles.
+
+Create User Secret
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/add-database-user-secret-scram.rst
+
+.. _create-db-user-scram:
+
+Create MongoDBUser
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/steps/add-database-user-scram.rst
+
+.. _delete-db-user-scram:
+
+Delete a Database User
+----------------------
+
+To delete a database user, pass the ``metadata.name`` from the user
+MongoDBUser to the following command:
+
+.. code-block:: sh
+
+   kubectl delete mdbu <metadata.name>
+
+Change Authentication Mechanism
+-------------------------------
+
+To change your user authenication mechanism to SCRAM:
+
+1. Disable authentication.
+
+   Under ``spec.security.authentication``, change ``enabled`` to
+   ``false``.
+
+   .. code-block:: yaml
+
+      spec:
+        security:
+          authentication:
+            enabled : false
+
+2. Reapply the user's resource definition.
+
+3. Wait for the MongoDBResource to reach the ``running`` state.
+
+4. Enable SCRAM authentication.
+
+   Under ``spec.security.authentication``, change ``enabled`` to
+   ``true`` and set :setting:`spec.security.authentication.modes` to ``
+   ["SCRAM"]``.
+
+   .. code-block:: yaml
+
+      spec:
+        security:
+          authentication:
+            enabled : true
+            modes: ["SCRAM"]
+
+5. Reapply the MongoDBUser resource.
+
+6. Wait for the MongoDBResource to reach the ``running`` state.

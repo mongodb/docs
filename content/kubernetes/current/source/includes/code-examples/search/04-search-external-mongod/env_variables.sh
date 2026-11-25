@@ -2,7 +2,7 @@ export K8S_CTX="<your kubernetes context here>"
 
 export MDB_NS="mongodb"
 
-export MDB_VERSION="8.3.4"
+export MDB_VERSION="8.3.13"
 
 export MDB_ADMIN_USER_PASSWORD="admin-user-password-CHANGE-ME"
 export MDB_USER_PASSWORD="mdb-user-password-CHANGE-ME"
@@ -11,6 +11,8 @@ export MDB_SEARCH_SYNC_USER_PASSWORD="search-sync-user-password-CHANGE-ME"
 export MDB_TLS_CA_SECRET_NAME="ca"
 export MDB_SEARCH_TLS_SECRET_NAME="mdbs-search-tls"
 
+
+export MDB_SEARCH_RESOURCE_NAME="mdbs"
 export MDB_SEARCH_SERVICE_NAME="mdbs-search"
 export MDB_SEARCH_HOSTNAME="mdbs-search.example.com"
 

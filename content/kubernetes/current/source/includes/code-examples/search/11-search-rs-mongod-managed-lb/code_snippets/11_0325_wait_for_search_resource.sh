@@ -12,4 +12,4 @@ echo "[ok] MongoDBSearch '${MDB_RESOURCE_NAME}' is Running"
 echo ""
 echo "MongoDBSearch pods:"
 kubectl get pods -n "${MDB_NS}" --context "${K8S_CTX}" \
-  -l "app.kubernetes.io/component=mongot"
+  -l "app=${MDB_RESOURCE_NAME}-search-0-svc"

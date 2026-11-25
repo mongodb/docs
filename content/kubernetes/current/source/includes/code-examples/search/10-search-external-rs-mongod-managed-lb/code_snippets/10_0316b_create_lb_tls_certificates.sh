@@ -18,8 +18,9 @@ spec:
     size: 2048
   usages:
     - server auth
+  # Must cover the hostname mongod connects to (MDB_PROXY_HOST)
   dnsNames:
-    - "*.${MDB_NS}.svc.cluster.local"
+    - "${MDB_SEARCH_EXTERNAL_HOSTNAME}"
   issuerRef:
     name: ${MDB_TLS_CA_ISSUER}
     kind: ClusterIssuer

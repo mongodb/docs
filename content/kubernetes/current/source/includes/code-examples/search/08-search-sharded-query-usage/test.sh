@@ -26,6 +26,9 @@ run 08_0410_run_mongodb_tools_pod.sh
 # Import sample data and shard collections
 run_for_output 08_0420_import_sample_data.sh
 
+# Wait until mongos accepts search index commands
+run_for_output 08_0425_internal_wait_for_search_index_commands.sh
+
 # Create search indexes
 run 08_0430_create_search_index.sh
 run 08_0435_create_vector_search_index.sh

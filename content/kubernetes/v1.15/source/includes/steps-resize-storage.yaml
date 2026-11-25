@@ -1,0 +1,211 @@
+---
+stepnum: 1
+level: 4
+ref: select-resource
+title: Create or identify a persistent |k8s-custom-resource|.
+content: |
+
+  Use an existing database resource or create a new one with persistent
+  storage. Wait until the persistent volume gets to the ``Running``
+  state.
+
+  .. example::
+
+     A database resource with persistent storage would include:
+
+     .. code-block:: yaml
+        :linenos:
+        :emphasize-lines: 11-14
+
+        apiVersion: mongodb.com/v1
+        kind: MongoDB
+        metadata:
+          name: <my-replica-set>
+        spec:
+          members: 3
+          version: "8.0.0"
+          project: my-project
+          credentials: my-credentials
+          type: ReplicaSet
+          podSpec:
+            persistence:
+              single:
+                storage: "1Gi"
+
+---
+stepnum: 2
+level: 4
+ref: insert-data
+title: Insert data to the database that the resource serves.
+content: |
+
+  a. Start |mongo| in the |k8s| cluster.
+
+     .. code-block:: sh
+
+        $kubectl exec -it <my-replica-set>-0 \
+                 /var/lib/mongodb-mms-automation/mongodb-linux-x86_64-8.0.0/bin/mongo
+
+  b. Insert data into the ``test`` database.
+
+     .. code-block:: javascript
+        :copyable: false
+
+        <my-replica-set>:PRIMARY> use test
+
+        switched to db test
+
+        <my-replica-set>:PRIMARY> db.tmp.insertOne({"foo":"bar"})
+
+        {
+          "acknowledged" : true,
+          "insertedId" : ObjectId("61128cb4a783c3c57ae5142d")
+        }
+
+---
+stepnum: 3
+level: 4
+ref: patch-pv
+title: Patch each persistence volume.
+content: |
+
+  Invoke the following commands for the entire replica set:
+
+  .. code-block:: sh
+
+     kubectl patch pvc/"data-<my-replica-set>-0" -p='{"spec": {"resources": {"requests": {"storage": "2Gi"}}}}'
+     kubectl patch pvc/"data-<my-replica-set>-1" -p='{"spec": {"resources": {"requests": {"storage": "2Gi"}}}}'
+     kubectl patch pvc/"data-<my-replica-set>-2" -p='{"spec": {"resources": {"requests": {"storage": "2Gi"}}}}'
+
+  Wait until each |k8s-pvc| gets to the following condition:
+
+  .. code-block:: yaml
+
+     - lastProbeTime: null
+       lastTransitionTime: "2019-08-01T12:11:39Z"
+       message: Waiting for user to (re-)start a pod to finish file
+                system resize of volume on node.
+       status: "True"
+       type: FileSystemResizePending
+
+---
+stepnum: 4
+level: 4
+ref: recreate-statefulsets
+title: Stop the Operator.
+content: |
+
+   Update the |k8s-op-short| deployment definition and apply the change to your 
+   |k8s| cluster in order to scale the |k8s-op-short| down to ``0`` replicas. 
+   Scaling the |k8s-op-short| down to ``0`` replicas allows you to avoid a race 
+   condition in which the |k8s-op-short| tries to restore the state of the 
+   manually updated resource to align with the resource's original definition. 
+
+   .. code-block:: yaml
+
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: mongodb-kubernetes-operator
+        namespace: mongodb
+      spec:
+        replicas: 0
+
+---
+stepnum: 5
+level: 4
+ref: remove-statefulsets
+title: Remove the StatefulSets.
+content: |
+
+  .. note::
+
+     This step removes the |k8s-statefulset| only. The pods remain
+     unchanged and running.
+
+  Delete a |k8s-statefulset| resource.
+
+  .. code-block:: sh
+
+     kubectl delete sts --cascade=false <my-replica-set>
+
+---
+stepnum: 6
+level: 4
+ref: update-crd
+title: Update the database resource with a new storage value.
+content: |
+
+  a. Update the disk size. Open your preferred text editor and make
+     changes similar to this example:
+
+     .. example::
+
+        To update the disk size of the replica set to 2 GB, change the
+        ``storage`` value in the database resource specification:
+
+        .. code-block:: yaml
+           :linenos:
+           :emphasize-lines: 14
+
+           apiVersion: mongodb.com/v1
+           kind: MongoDB
+           metadata:
+             name: <my-replica-set>
+           spec:
+             members: 3
+             version: "8.0.0"
+             project: my-project
+             credentials: my-credentials
+             type: ReplicaSet
+             podSpec:
+               persistence:
+                 single:
+                   storage: "2Gi"
+
+  b. Recreate a |k8s-statefulset| resource with the new volume size.
+
+     .. code-block:: sh
+
+        kubectl apply -f my-replica-set-vol.yaml
+
+  c. Wait until the MongoDB custom resource is in a ``Running`` state.
+
+---
+stepnum: 7
+level: 4
+ref: update-pods
+title: Update the pods in a rolling fashion.
+content: |
+
+  Invoke the following command:
+
+  .. code-block:: sh
+
+     kubectl rollout restart sts <my-replica-set>
+
+  The new pods mount the resized volume.
+
+---
+stepnum: 8
+level: 4
+ref: validate-pv-change
+title: Validate data exists on the updated |k8s-pvc|.
+content: |
+
+  If the |k8s-pvs| were reused, the data that you inserted in **Step
+  2** can be found on the databases stored in |k8s-pvs|:
+
+  .. code-block:: sh
+
+     $ kubectl exec -it <my-replica-set>-1 \
+               /var/lib/mongodb-mms-automation/mongodb-linux-x86_64-8.0.0/bin/mongo
+
+  .. code-block:: javascript
+     :copyable: false
+
+     <my-replica-set>:PRIMARY> use test
+     switched to db test
+
+     <my-replica-set>:PRIMARY> db.tmp.count()
+     1

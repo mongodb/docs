@@ -1,0 +1,162 @@
+.. _k8s-migrate-to-mck-plugin-reference:
+
+=========================================
+migrate-to-mck Plugin Command Reference
+=========================================
+
+.. meta::
+   :description: Reference the flags and pre-creation requirements
+      for the kubectl mongodb migrate-to-mck plugin subcommands that
+      generate MongoDB and MongoDBUser resources for a migration into
+      Kubernetes.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``kubectl mongodb`` plugin's ``migrate-to-mck`` command
+generates the Kubernetes custom resources you need to migrate a
+self-managed deployment into Kubernetes under |k8s-op-short|. It
+has two subcommands: ``mongodb``, which generates the ``MongoDB``
+resource, and ``users``, which generates ``MongoDBUser`` resources.
+
+Both subcommands validate the source automation config before
+producing any output, and exit with a non-zero status on any
+blocking issue. Both support interactive prompting for missing
+values, and a fully non-interactive mode when you supply all
+required flags.
+
+``kubectl mongodb migrate-to-mck mongodb``
+-------------------------------------------
+
+Generates the ``MongoDB`` custom resource for the migration target.
+
+.. list-table::
+   :widths: 25 15 60
+   :header-rows: 1
+
+   * - Flag
+     - Required
+     - Description
+
+   * - ``--config-map-name``
+     - Yes
+     - Name of the |mms| or Cloud Manager project ``ConfigMap``.
+
+   * - ``--secret-name``
+     - Yes
+     - Name of the ``Secret`` that holds the |mms| or Cloud Manager
+       API key.
+
+   * - ``--namespace``
+     - No
+     - Kubernetes namespace for the generated resource. Defaults
+       to ``default``.
+
+   * - ``-o``, ``--output``
+     - No
+     - File path to write the generated resource to.
+
+   * - ``--certs-secret-prefix``
+     - Only when TLS is enabled
+     - Sets :setting:`spec.security.certsSecretPrefix` on the
+       generated resource, and suppresses the interactive prompt
+       for this value.
+
+   * - ``--prometheus-secret-name``
+     - Only when Prometheus is enabled
+     - Name of a pre-created ``Secret`` that contains a ``password``
+       key, used for Prometheus scraping credentials.
+
+   * - ``--resource-name-override``
+     - No
+     - Sets ``metadata.name`` on the generated resource. When the
+       source replica set name is not a valid Kubernetes name, the
+       plugin normalizes it automatically and sets
+       :setting:`spec.replicaSetNameOverride` for you.
+
+``kubectl mongodb migrate-to-mck users``
+-----------------------------------------
+
+Generates ``MongoDBUser`` resources for the migration target's
+authenticated users.
+
+.. list-table::
+   :widths: 25 15 60
+   :header-rows: 1
+
+   * - Flag
+     - Required
+     - Description
+
+   * - ``--config-map-name``
+     - Yes
+     - Name of the |mms| or Cloud Manager project ``ConfigMap``.
+
+   * - ``--secret-name``
+     - Yes
+     - Name of the ``Secret`` that holds the |mms| or Cloud Manager
+       API key.
+
+   * - ``--namespace``
+     - No
+     - Kubernetes namespace for the generated resources. Defaults
+       to ``default``.
+
+   * - ``-o``, ``--output``
+     - No
+     - File path to write the generated resources to.
+
+   * - ``--users-secrets-file``
+     - No
+     - Path to a CSV file that maps SCRAM users to ``Secret``\s. Each
+       line uses the form ``username:database,secret-name``. If
+       you omit this flag, the plugin prompts you for a ``Secret`` name
+       for each user, and suggests ``<username>-password`` as the
+       default.
+
+   * - ``--resource-name-override``
+     - No
+     - Name of the ``MongoDB`` resource that the generated
+       ``MongoDBUser`` resources reference through
+       ``mongodbResourceRef.name``. Defaults to the normalized
+       replica set name.
+
+.. note::
+
+   The plugin generates ``MongoDBUser`` resources for X.509 and
+   LDAP users against the ``$external`` database. The plugin skips
+   the automation agent user.
+
+Pre-Creation Requirements
+--------------------------
+
+Before you run either subcommand, create the following Kubernetes
+objects:
+
+- A project ``ConfigMap`` with ``baseUrl``, ``orgId``, and
+  ``projectName`` keys.
+- An API-key ``Secret`` with ``publicKey`` and ``privateKey`` keys.
+- One ``Secret`` per SCRAM user, each with a ``password`` key.
+- If Prometheus is enabled, a ``Secret`` with a ``password`` key for
+  the Prometheus scrape credentials.
+- If TLS is enabled:
+
+  - A ``<resourceName>-ca`` ``ConfigMap`` with a ``ca-pem`` key.
+  - A ``kubernetes.io/tls`` ``Secret`` named
+    ``<certsSecretPrefix>-<resourceName>-cert``.
+
+- If X.509 agent authentication is enabled, a ``Secret`` named
+  ``<certsSecretPrefix>-<resourceName>-agent-certs``.
+
+Learn More
+----------
+
+- :ref:`k8s-migration-om-to-kubernetes`
+- :ref:`k8s-migration-om-to-k8s-replica-set`
+- :ref:`k8s-migration-crd-settings`
+- :ref:`k8s-migration-troubleshooting`

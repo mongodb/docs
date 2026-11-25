@@ -189,7 +189,7 @@ Shows all pods in the namespace including external MongoDB replica set pods, mon
 
 ```bash
 kubectl describe mongodbsearch ${MDB_SEARCH_RESOURCE_NAME} -n ${MDB_NS}
-kubectl logs -l app.kubernetes.io/component=mongot -n ${MDB_NS} --tail=50
+kubectl logs -l app=${MDB_SEARCH_RESOURCE_NAME}-search-0-svc -n ${MDB_NS} --tail=50
 ```
 
 Common causes:

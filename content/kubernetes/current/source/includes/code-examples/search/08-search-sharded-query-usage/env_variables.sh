@@ -14,7 +14,7 @@
 #   K8S_CTX    — Kubernetes context
 #   MDB_NS     — Kubernetes namespace
 #   MDB_VERSION
-#     — MongoDB version (e.g., 8.2.6-ent)
+#     — MongoDB version (e.g., 8.3.13-ent)
 #   MDB_TLS_CA_CONFIGMAP
 #     — CA certificate ConfigMap name for tools pod
 #       TLS mount
@@ -26,7 +26,7 @@
 #export MDB_NS="mongodb"
 
 # MongoDB version (used for tools pod image)
-#export MDB_VERSION="8.3.4-ent"
+#export MDB_VERSION="8.3.13-ent"
 
 # admin user connection string (for import and sharding commands)
 #export MDB_ADMIN_CONNECTION_STRING="mongodb://mdb-admin:PASSWORD@HOST/?tls=true&tlsCAFile=/tls/ca-pem&authSource=admin&authMechanism=SCRAM-SHA-256"

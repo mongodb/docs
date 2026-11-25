@@ -2,7 +2,7 @@ echo "Creating TLS certificate for MongoDB Search (mongot) pods..."
 
 sts_name="${MDB_SEARCH_RESOURCE_NAME}-search"
 cert_name="${MDB_TLS_CERT_SECRET_PREFIX}-${sts_name}-cert"
-mongot_svc="${sts_name}-svc"
+mongot_svc="${MDB_SEARCH_RESOURCE_NAME}-search-0-svc"
 
 echo "  Creating certificate: ${cert_name}"
 kubectl apply --context "${K8S_CTX}" -n "${MDB_NS}" -f - <<EOF

@@ -43,8 +43,8 @@ export OPS_MANAGER_ORG_ID="<SET ORG ID>"
 # MONGODB VERSION
 # ============================================================================
 
-# Minimum required MongoDB version for Search is 8.2
-export MDB_VERSION="8.3.4-ent"
+# Minimum required MongoDB version for Search is 8.3
+export MDB_VERSION="8.3.13-ent"
 
 # ============================================================================
 # USER CREDENTIALS (change these in production!)
@@ -94,8 +94,13 @@ export MDB_EXTERNAL_HOST_2="${MDB_EXTERNAL_CLUSTER_NAME}-2.${MDB_EXTERNAL_CLUSTE
 # Port where Envoy listens for mongod connections (operator default)
 export ENVOY_PROXY_PORT="27028"
 
-# Managed LB proxy host -- stable proxy service for the RS topology
-export MDB_PROXY_HOST="${MDB_SEARCH_RESOURCE_NAME}-search-0-proxy-svc.${MDB_NS}.svc.cluster.local:${ENVOY_PROXY_PORT}"
+# Hostname your mongod hosts use to reach Envoy. Replace with a DNS name that
+# points at the Envoy proxy Service (or a load balancer in front of it).
+# Envoy matches it as the TLS SNI, so it must also be in the LB server cert.
+export MDB_SEARCH_EXTERNAL_HOSTNAME="search.example.com"
+
+# mongotHost / searchIndexManagementHostAndPort value for mongod
+export MDB_PROXY_HOST="${MDB_SEARCH_EXTERNAL_HOSTNAME}:${ENVOY_PROXY_PORT}"
 
 # NOTE: Unlike unmanaged mode, you do NOT need to specify:
 # - ENVOY_IMAGE (operator uses its default)

@@ -27,7 +27,7 @@ spec:
     - replicas: ${MDB_MONGOT_REPLICAS}
       loadBalancer:
         managed:
-          externalHostname: ${MDB_SEARCH_RESOURCE_NAME}-search-0-proxy-svc.${MDB_NS}.svc.cluster.local
+          externalHostname: ${MDB_SEARCH_EXTERNAL_HOSTNAME}
       resourceRequirements:
         limits:
           cpu: "2"

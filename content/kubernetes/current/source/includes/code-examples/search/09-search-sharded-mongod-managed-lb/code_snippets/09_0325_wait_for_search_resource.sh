@@ -11,5 +11,7 @@ echo "[ok] MongoDBSearch '${MDB_RESOURCE_NAME}' is Running"
 
 echo ""
 echo "MongoDBSearch pods:"
-kubectl get pods -n "${MDB_NS}" --context "${K8S_CTX}" \
-  -l "app.kubernetes.io/component=mongot"
+for shard_name in "${MDB_SHARD_0_NAME}" "${MDB_SHARD_1_NAME}"; do
+  kubectl get pods -n "${MDB_NS}" --context "${K8S_CTX}" \
+    -l "app=${MDB_RESOURCE_NAME}-search-0-${shard_name}"
+done

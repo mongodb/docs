@@ -382,6 +382,103 @@ resources.
       |application| based on the container's memory. Changing the
       ``-Xms`` and ``-Xmx`` values can cause issues with |onprem|.
 
+.. opsmgrkube:: spec.license
+
+   *Type*: collection
+
+   *Optional*. Configuration object that manages the |onprem|
+   Enterprise Advanced license and its release receipts. To learn how
+   to use these settings, see :ref:`mck-om-license-management`.
+
+   .. code-block:: yaml
+
+      spec:
+        license:
+          secretRef:
+            name: om-license
+          releaseReceiptsPolicy: Automatic
+          releasedLicenses:
+            - secretRef:
+                name: old-license
+
+.. opsmgrkube:: spec.license.secretRef
+
+   *Type*: collection
+
+   *Optional*. Reference to the |k8s-secret| that holds the signed
+   license in its ``license`` key. The |k8s-op-short| installs the
+   license in |onprem|, and releases it when you remove this setting.
+
+   Keep the Secret until |onprem| releases the license, because the
+   |k8s-op-short| identifies the license that it installed by this
+   Secret. If you want to remove the setting, don't replace the license
+   in the Secret or delete the Secret during the removal. The
+   |k8s-op-short| can't then tell which license to release, so it
+   releases nothing. Remove this setting first, wait until the
+   ``OperatorManagedLicense`` condition reports ``NotProvided``, and
+   change the Secret afterward.
+
+   If you omit this setting, the |k8s-op-short| doesn't install or
+   release a license.
+
+.. opsmgrkube:: spec.license.secretRef.name
+
+   *Type*: string
+
+   *Optional*. Name of the |k8s-secret| that holds the signed license.
+   The Secret must be in the same |k8s-ns| as the ``MongoDBOpsManager``
+   resource.
+
+.. opsmgrkube:: spec.license.releaseReceiptsPolicy
+
+   *Type*: string
+
+   *Optional*. Which released licenses the |k8s-op-short| writes a
+   release receipt for. Accepted values are:
+
+   - ``OnlyListed``: Writes a receipt for the licenses in
+     :opsmgrkube:`spec.license.releasedLicenses` only. This is the
+     default value.
+
+   - ``Automatic``: Writes a receipt for every license that the
+     |k8s-op-short| releases, in addition to the licenses in
+     :opsmgrkube:`spec.license.releasedLicenses`.
+
+   To learn more, see :ref:`mck-om-license-management`.
+
+.. opsmgrkube:: spec.license.releasedLicenses
+
+   *Type*: array of objects
+
+   *Optional*. The released licenses to write a release receipt for.
+   Each entry points at a |k8s-secret| that holds a released license,
+   usually the Secret that held the previous license.
+
+   The |k8s-op-short| writes the receipt to a Secret named
+   ``<licenseSecret>-<artifactId>-release-receipt``, or to
+   ``<artifactId>-release-receipt`` if it doesn't know the license
+   Secret. Listing a license doesn't release it.
+
+   - List up to 16 entries.
+   - Each entry must point at a different Secret.
+   - An entry can't point at the same Secret as
+     :opsmgrkube:`spec.license.secretRef`.
+
+.. opsmgrkube:: spec.license.releasedLicenses[*].secretRef
+
+   *Type*: collection
+
+   *Required*. Reference to a |k8s-secret| that holds a released
+   license.
+
+.. opsmgrkube:: spec.license.releasedLicenses[*].secretRef.name
+
+   *Type*: string
+
+   *Required*. Name of the |k8s-secret| that holds the released
+   license. The Secret must be in the same |k8s-ns| as the
+   ``MongoDBOpsManager`` resource.
+
 .. opsmgrkube:: spec.security.certsSecretPrefix
 
    *Type*: string
@@ -1406,13 +1503,23 @@ You can use |tls| for both |s3| and your {+appdb+}, or for
 
    *Type*: boolean
 
+   *Deprecated*. Starting with |onprem| versions 8.0.28 and 9.0.2,
+   |onprem| reads the Object Lock configuration directly from the
+   |s3| bucket. For these versions, the |k8s-op-short| doesn't send
+   this field to |onprem| and logs a warning that the field is
+   deprecated and ignored. For earlier versions, the |k8s-op-short|
+   continues to send this field for backward compatibility.
+
+   To opt in to portable backups instead, set
+   :opsmgrkube:`spec.backup.s3OpLogStores.portableBackupEnabled`.
+
    Specifies whether the |aws| |s3| or |s3|-compatible bucket
    backing this oplog store has Object Lock enabled. Set this
    field to ``true`` to enable immutable backups for the store.
 
    This field is supported only with |onprem| version 8.0.28 or
-   later. For information about configuring immutable backups in
-   |onprem|, see :opsmgr:`Set Immutable Backup
+   later. For information about configuring portable backups in
+   |onprem|, see :opsmgr:`Portable S3 Backups with Object Lock
    </tutorial/immutable-s3-snapshots>`.
 
    Default value is ``false``.
@@ -1420,6 +1527,14 @@ You can use |tls| for both |s3| and your {+appdb+}, or for
 .. opsmgrkube:: spec.backup.s3OpLogStores.objectRetentionDays
 
    *Type*: integer
+
+   *Deprecated*. Starting with |onprem| versions 8.0.28 and 9.0.2,
+   |onprem| reads the Object Lock retention configuration directly
+   from the |s3| bucket. For these versions, the |k8s-op-short|
+   doesn't send this field to |onprem| and logs a warning that the
+   field is deprecated and ignored. For earlier versions, the
+   |k8s-op-short| continues to send this field for backward
+   compatibility.
 
    Number of days that |onprem| retains this oplog store's backup
    objects in |s3| before deletion is allowed. The value must be 1
@@ -1439,6 +1554,14 @@ You can use |tls| for both |s3| and your {+appdb+}, or for
 
    *Type*: string
 
+   *Deprecated*. Starting with |onprem| versions 8.0.28 and 9.0.2,
+   |onprem| reads the Object Lock retention configuration directly
+   from the |s3| bucket. For these versions, the |k8s-op-short|
+   doesn't send this field to |onprem| and logs a warning that the
+   field is deprecated and ignored. For earlier versions, the
+   |k8s-op-short| continues to send this field for backward
+   compatibility.
+
    |s3| Object Lock retention mode that |onprem| applies to this
    oplog store's backup objects. Accepted values are
    ``GOVERNANCE`` and ``COMPLIANCE``.
@@ -1455,6 +1578,33 @@ You can use |tls| for both |s3| and your {+appdb+}, or for
 
    This field is supported only with |onprem| version 8.0.28 or
    later.
+
+.. opsmgrkube:: spec.backup.s3OpLogStores.portableBackupEnabled
+
+   *Type*: boolean
+
+   Set this field to ``true`` to opt in to portable backups for
+   this oplog store. With portable backups, |onprem| writes portable
+   restore metadata copies into the |s3| bucket alongside the backup
+   data, so you can import a full backup into a new or rebuilt
+   |onprem| deployment by using only what the bucket stores.
+
+   A portable backup requires an |s3| bucket with Object Lock
+   enabled. This field only opts in to portable backups. |onprem|
+   reads the Object Lock configuration directly from the bucket and
+   rejects the portable backup if the bucket doesn't have Object
+   Lock enabled.
+
+   You can't disable portable backups after you enable them on a
+   store. |onprem| writes portable restore metadata only for
+   backups taken after you enable this field.
+
+   This field is supported only with |onprem| versions 8.0.28,
+   9.0.2, and later. To learn more about portable backups in
+   |onprem|, see :opsmgr:`Portable S3 Backups with Object Lock
+   </tutorial/immutable-s3-snapshots>`.
+
+   Default value is ``false``.
 
 .. opsmgrkube:: spec.backup.s3OpLogStores.pathStyleAccessEnabled
 
@@ -1686,13 +1836,23 @@ You can use |tls| for both |s3| and your {+appdb+}, or for
 
    *Type*: boolean
 
+   *Deprecated*. Starting with |onprem| versions 8.0.28 and 9.0.2,
+   |onprem| reads the Object Lock configuration directly from the
+   |s3| bucket. For these versions, the |k8s-op-short| doesn't send
+   this field to |onprem| and logs a warning that the field is
+   deprecated and ignored. For earlier versions, the |k8s-op-short|
+   continues to send this field for backward compatibility.
+
+   To opt in to portable backups instead, set
+   :opsmgrkube:`spec.backup.s3Stores.portableBackupEnabled`.
+
    Specifies whether the |aws| |s3| or |s3|-compatible bucket
    backing this snapshot store has Object Lock enabled. Set this
    field to ``true`` to enable immutable backups for the store.
 
    This field is supported only with |onprem| version 8.0.19 or
-   later. For information about configuring immutable backups in
-   |onprem|, see :opsmgr:`Set Immutable Backup
+   later. For information about configuring portable backups in
+   |onprem|, see :opsmgr:`Portable S3 Backups with Object Lock
    </tutorial/immutable-s3-snapshots>`.
 
    Default value is ``false``.
@@ -1700,6 +1860,14 @@ You can use |tls| for both |s3| and your {+appdb+}, or for
 .. opsmgrkube:: spec.backup.s3Stores.objectRetentionDays
 
    *Type*: integer
+
+   *Deprecated*. Starting with |onprem| versions 8.0.28 and 9.0.2,
+   |onprem| reads the Object Lock retention configuration directly
+   from the |s3| bucket. For these versions, the |k8s-op-short|
+   doesn't send this field to |onprem| and logs a warning that the
+   field is deprecated and ignored. For earlier versions, the
+   |k8s-op-short| continues to send this field for backward
+   compatibility.
 
    Number of days that |onprem| retains this snapshot store's backup
    objects in |s3| before deletion is allowed. The value must be 1
@@ -1719,6 +1887,14 @@ You can use |tls| for both |s3| and your {+appdb+}, or for
 
    *Type*: string
 
+   *Deprecated*. Starting with |onprem| versions 8.0.28 and 9.0.2,
+   |onprem| reads the Object Lock retention configuration directly
+   from the |s3| bucket. For these versions, the |k8s-op-short|
+   doesn't send this field to |onprem| and logs a warning that the
+   field is deprecated and ignored. For earlier versions, the
+   |k8s-op-short| continues to send this field for backward
+   compatibility.
+
    |s3| Object Lock retention mode that |onprem| applies to this
    snapshot store's backup objects. Accepted values are
    ``GOVERNANCE`` and ``COMPLIANCE``.
@@ -1735,6 +1911,34 @@ You can use |tls| for both |s3| and your {+appdb+}, or for
 
    This field is supported only with |onprem| version 8.0.27 or
    later.
+
+.. opsmgrkube:: spec.backup.s3Stores.portableBackupEnabled
+
+   *Type*: boolean
+
+   Set this field to ``true`` to opt in to portable backups for
+   this snapshot store. With portable backups, |onprem| writes
+   portable restore metadata copies into the |s3| bucket alongside
+   the backup data, so you can import a full backup into a new or
+   rebuilt |onprem| deployment by using only what the bucket
+   stores.
+
+   A portable backup requires an |s3| bucket with Object Lock
+   enabled. This field only opts in to portable backups. |onprem|
+   reads the Object Lock configuration directly from the bucket and
+   rejects the portable backup if the bucket doesn't have Object
+   Lock enabled.
+
+   You can't disable portable backups after you enable them on a
+   store. |onprem| writes portable restore metadata only for
+   backups taken after you enable this field.
+
+   This field is supported only with |onprem| versions 8.0.28,
+   9.0.2, and later. To learn more about portable backups in
+   |onprem|, see :opsmgr:`Portable S3 Backups with Object Lock
+   </tutorial/immutable-s3-snapshots>`.
+
+   Default value is ``false``.
 
 .. opsmgrkube:: spec.backup.s3Stores.pathStyleAccessEnabled
 

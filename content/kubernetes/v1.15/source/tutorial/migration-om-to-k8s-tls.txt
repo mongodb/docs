@@ -1,0 +1,177 @@
+.. _k8s-migration-om-to-k8s-tls:
+
+===========================================
+Configure TLS for a Migration to Kubernetes
+===========================================
+
+.. meta::
+   :description: Configure certificates, CA material, and path-compatibility fields so a TLS-enabled Ops Manager or Cloud Manager deployment migrates cleanly into Kubernetes under the Kubernetes Operator.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+When you migrate a TLS-enabled replica set from virtual
+machines into Kubernetes, one replica set is one trust domain.
+Issue the Kubernetes member certificates from the same
+certificate authority (CA) that signed the virtual machine
+certificates. This is the only migration-specific TLS
+requirement. The general TLS documentation for
+|k8s-op-short| covers everything else about configuring TLS.
+A CA mismatch fails the dry run, by design. To learn how the
+dry run surfaces that failure, see
+:ref:`k8s-migration-om-to-k8s-dry-run`.
+
+.. important::
+
+   The fields on this page exist for migration only. Do not
+   set them on a greenfield |k8s-op-short| deployment unless
+   the field description says otherwise.
+
+About this Task
+----------------
+
+To learn how to issue certificates, structure Secrets and
+ConfigMaps, and configure the general TLS settings on the
+``MongoDB`` custom resource, see:
+
+- :ref:`tls-settings` for the full list of
+  ``spec.security.tls`` and related fields.
+- :ref:`cert-manager-integration` to issue certificates with
+  ``cert-manager``.
+- :ref:`create-x509-certs` to issue certificates manually.
+
+When you follow that documentation for a migration, issue the
+Kubernetes member certificates from the same CA that signed
+the virtual machine certificates, not from a new CA. The CA
+``ConfigMap`` named ``<resourceName>-ca`` must contain a
+``ca-pem`` key populated from that same CA.
+
+Before you Begin
+-----------------
+
+You need the following:
+
+- The virtual machine deployment's existing CA certificate and
+  key material.
+
+- ``cert-manager`` or an equivalent tool to issue the
+  Kubernetes member certificates from that same CA.
+
+- The generated ``MongoDB`` custom resource from
+  :ref:`k8s-migration-om-to-k8s-replica-set`.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the certificate and CA resources from the source CA.
+
+      Follow :ref:`cert-manager-integration` or
+      :ref:`create-x509-certs` to create the
+      ``kubernetes.io/tls`` ``Secret`` named
+      ``<certsSecretPrefix>-<resourceName>-cert``, issuing the
+      certificate from the same CA that signed the virtual
+      machine certificates.
+
+      Create the CA ``ConfigMap`` named ``<resourceName>-ca``
+      with a ``ca-pem`` key populated from that same CA.
+
+      If you use X.509 agent authentication, also create the
+      ``<certsSecretPrefix>-<resourceName>-agent-certs``
+      ``Secret`` and set
+      ``spec.security.authentication.agents.clientCertificateSecretRef``
+      to reference it. This requirement applies to agent
+      authentication only, not to internal cluster
+      authentication (``spec.security.authentication.internalCluster``).
+
+   .. step:: Set path-compatibility fields to match the source deployment.
+
+      These fields exist only to make |k8s-op-short|'s view of
+      file paths match how the virtual machine deployment
+      already lays out its certificates and keyfile. Set only
+      the ones that apply to your source deployment:
+
+      - ``spec.security.tls.caFilePath``: the absolute path the
+        CA is projected to inside the Pod. Defaults to
+        ``/mongodb-automation/tls/ca/ca-pem``. The path must
+        contain at least two path segments. This field is not
+        supported for the {+appdb+}. If your ``podTemplate``
+        mounts another volume over this path, that mount
+        shadows the projected CA and the |mms| Agent cannot
+        read it.
+
+      - ``spec.security.authentication.agents.autoPEMKeyFilePath``:
+        the absolute path of the agent's combined PEM file
+        inside database Pods. This field configures agent
+        authentication only. Setting this field sets the |mms|
+        ``tls.autoPEMKeyFilePath`` value and mounts the
+        ``Secret`` referenced by
+        ``clientCertificateSecretRef`` at that path. It defaults
+        to a hash-derived agent certificate mount path, and
+        setting it requires
+        ``spec.security.authentication.agents.clientCertificateSecretRef``
+        to already be set. Set this field only when the virtual
+        machine deployment uses a non-default agent PEM path.
+
+      - ``spec.downloadBase``: the directory where the |mms|
+        Agent binary downloads. Defaults to
+        ``/var/lib/mongodb-mms-automation``. |k8s-op-short|
+        derives the keyfile path from this value as
+        ``<downloadBase>/keyfile``.
+
+   .. step:: If the source deployment does not use TLS, disable TLS on the source deployment.
+
+      If the virtual machine deployment never configured TLS,
+      set ``net.tls.mode`` to ``disabled`` in Ops Manager or
+      Cloud Manager on the existing virtual machine deployment
+      before you migrate. Do not set this field on the
+      ``MongoDB`` custom resource.
+
+      If you leave the source deployment's TLS mode unset,
+      |k8s-op-short| attempts a deployment change that does not
+      match the source automation config, because its default
+      view of TLS differs from a deployment that never
+      configured TLS at all. Setting the field to ``disabled``
+      on the source deployment makes |k8s-op-short|'s view
+      match the virtual machine deployment and avoids that
+      spurious change.
+
+   .. step:: Run the dry run to confirm the CA matches.
+
+      Apply the resource with the dry-run annotation still
+      present and check the ``NetworkConnectivityVerified``
+      condition. To learn how to read the result and what to do
+      if it fails, see :ref:`k8s-migration-om-to-k8s-dry-run`.
+
+For Sharded Clusters
+---------------------
+
+A sharded cluster needs one certificate per component,
+following the pattern ``<resourceName>-config-*`` for the
+config server, ``<resourceName>-<shardIndex>-*`` for each
+shard, and ``<resourceName>-mongos-*`` for the ``mongos``
+routers.
+
+.. note::
+
+   Confirm the exact per-component ``Secret`` names against the
+   generated resource before you reconcile. To learn how a
+   sharded cluster migration differs from a replica set
+   migration, see :ref:`k8s-migration-om-to-k8s-sharded-cluster`.
+
+Learn More
+----------
+
+- :ref:`tls-settings`
+- :ref:`cert-manager-integration`
+- :ref:`create-x509-certs`
+- :ref:`k8s-migration-om-to-k8s-dry-run`
+- :ref:`k8s-migration-om-to-k8s-replica-set`
+- :ref:`k8s-migration-om-to-kubernetes`

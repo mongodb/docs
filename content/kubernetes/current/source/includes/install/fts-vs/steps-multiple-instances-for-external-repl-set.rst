@@ -19,7 +19,9 @@
            The |k8s-op-short| creates a proxy Service named
            ``{name}-search-0-proxy-svc`` and the ``externalHostname``
            value is embedded in the proxy's TLS certificate so that
-           ``mongod`` can verify the connection.
+           ``mongod`` can verify the connection. You must create a DNS
+           record that resolves this hostname to the proxy Service, or
+           to a load balancer in front of it.
          - Resource limits and requests for ``mongot`` pods.
 
          .. literalinclude:: /includes/code-examples/search/10-search-external-rs-mongod-managed-lb/code_snippets/10_0320_create_mongodb_search_resource.sh

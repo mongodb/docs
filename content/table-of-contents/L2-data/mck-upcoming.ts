@@ -244,7 +244,7 @@ const mckUpcoming: TocItem[] = [
         label: 'Manage the Ops Manager License',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/tutorial/manage-om-license',
-        versions: { includes: ['upcoming'] },
+        versions: { includes: ['upcoming', 'current'] },
       },
       {
         label: 'Deploy the Ops Manager Custom Resource',
@@ -272,7 +272,7 @@ const mckUpcoming: TocItem[] = [
         label: 'Deploy a Multi-Cluster External Application Database',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/tutorial/deploy-om-external-appdb-multi-cluster',
-        versions: { includes: ['upcoming'] },
+        versions: { includes: ['upcoming', 'current', 'v1.15'] },
       },
       {
         label: 'Migrate to an External Application Database',
@@ -408,7 +408,7 @@ const mckUpcoming: TocItem[] = [
         label: 'Migrate a Standalone to a One-Member Replica Set',
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/tutorial/migrate-standalone-to-replica-set',
-        versions: { includes: ['upcoming'] },
+        versions: { includes: ['upcoming', 'current', 'v1.15'] },
       },
       {
         label: 'Migrate a Self-Managed Deployment to Kubernetes',

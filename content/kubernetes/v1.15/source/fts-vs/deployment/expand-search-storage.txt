@@ -1,0 +1,305 @@
+.. _k8s-fts-vs-expand-search-storage:
+
+===================================
+Expand MongoDB Search Index Storage
+===================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to expand the persistent volume claims that store MongoDB Search and Vector Search indexes for a Kubernetes Operator deployment, and update the MongoDBSearch resource accordingly.
+   :keywords: MongoDB Search, vector search, persistent volume claim, PVC, mongot, Kubernetes Operator
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``mongot`` process stores |text-search| and |vector-search|
+indexes on a dedicated |k8s-pv|. The |k8s-op-short| doesn't expand
+that storage automatically. In |k8s-op-short| 1.9 or later, you can
+expand the ``mongot`` |k8s-pvcs|, then update the MongoDBSearch
+resource to reflect the expanded volume size. To increase storage
+for other resources, see :ref:`k8s-resize-storage`.
+
+Prerequisites
+-------------
+
+- ``mongot`` |k8s-pvcs| provisioned using a Container Storage Interface
+  (CSI) driver that supports volume expansion while the volume remains
+  attached, and a |k8s-sc| that represents that driver and sets
+  ``allowVolumeExpansion`` to ``true``. Confirm that the file system
+  supports expansion. This procedure doesn't cover storage backends
+  that require detaching the volume before the controller can expand
+  it.
+- A healthy source database and |text-search| and |vector-search|
+  deployment, and a backup or recovery plan. To configure backups for
+  the source database, see :ref:`back-up-mdb-resources`. To learn what
+  to back up for Search, see :ref:`k8s-fts-vs-faq`.
+- A maintenance window without concurrent scaling or upgrades of the
+  |k8s-op-short| or the MongoDBSearch resource. Pause automation that
+  can restore |k8s-op-short| replicas or revert the Search storage
+  setting, for example a GitOps sync. If you manage the MongoDBSearch
+  resource in Git, commit the new size before you resume the sync. If
+  you stop an operator, it pauses reconciliation for all resources it
+  manages.
+- Permission to patch |k8s-pvcs|, edit MongoDBSearch resources,
+  scale |k8s-op-short| deployments, and delete |k8s-statefulsets|
+  and |k8s-pods|.
+
+Multi-Cluster Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+During this procedure, you run commands against the MongoDBSearch
+resource, the ``mongot`` |k8s-statefulsets| and their |k8s-pvcs|, and
+the |k8s-op-short| Deployment. In a multi-cluster deployment, these
+targets can reside in different clusters. Use the following table to
+determine the context for each command and the operator to stop and
+resume:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 26 24 30
+
+   * - Deployment
+     - MongoDBSearch resource context
+     - |k8s-statefulset| and |k8s-pvc| context
+     - Operator to stop and resume
+
+   * - Single cluster
+     - Workload cluster
+     - Same cluster
+     - Local operator
+
+   * - Central multi-cluster |k8s-op-short|
+     - Central cluster
+     - Each affected member cluster
+     - Central operator
+
+   * - |k8s-op-short| per member cluster
+     - Each member cluster's local Search resource
+     - Same member cluster
+     - Each affected member's Search operator
+
+Expand Storage
+--------------
+
+The following procedure expands replica set Search storage from
+``1Gi`` to ``2Gi``. Match each |k8s-statefulset| to its cluster
+entry's ``name`` and explicit ``index``, not the entry's position in
+the ``clusters`` array.
+
+A matching ``shardOverrides[].persistence`` setting replaces the
+cluster's ``persistence`` setting. If you set it, change the size
+there. If you override ``volumeClaimTemplates`` in
+``spec.clusters[].statefulSet``, change the size there. That override
+takes precedence over ``persistence``.
+
+.. warning::
+
+   Increase only the storage, while keeping the existing MongoDBSearch
+   resource and its |k8s-pvcs|, and don't scale down ``mongot``. Delete
+   only the |k8s-statefulset| definitions, and make sure to use the
+   ``--cascade=orphan`` option so that the ``mongot`` |k8s-pods| and
+   their claims remain intact while the |k8s-op-short| is stopped.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Identify the ``mongot`` StatefulSets and data claims.
+
+      List the ``mongot`` |k8s-statefulsets| for the MongoDBSearch
+      resource:
+
+      .. code-block:: sh
+
+         kubectl --context <member-context> -n <namespace> \
+           get sts -l mongodb.com/search-name=<search-name>
+
+      With the default ``data`` claim template, each replica uses a
+      claim named ``data-<statefulset-name>-<ordinal>``. For a
+      sharded cluster source, each cluster has one
+      |k8s-statefulset| for each shard. If you customized the claim
+      templates or volume mounts, check the claim that each |k8s-pod|
+      mounts instead.
+
+   .. step:: Expand each data claim.
+
+      Run the following command for each claim that you identified
+      in the previous step:
+
+      .. code-block:: sh
+
+         kubectl --context <member-context> -n <namespace> \
+           patch pvc <pvc-name> --type=merge \
+           -p '{"spec":{"resources":{"requests":{"storage":"2Gi"}}}}'
+
+      Wait until each claim reports at least the requested size (in this
+      example, 2Gi) in ``status.capacity.storage`` or the
+      ``FileSystemResizePending`` condition:
+
+      .. code-block:: sh
+
+         kubectl --context <member-context> -n <namespace> \
+           get pvc <pvc-name> -o yaml
+
+      If the expansion takes longer than your storage backend's
+      documented timeout, investigate the CSI events before you
+      continue:
+
+      .. code-block:: sh
+
+         kubectl --context <member-context> -n <namespace> \
+           describe pvc <pvc-name>
+
+   .. step:: Stop the responsible |k8s-op-short| deployments.
+
+      Record each operator's original replica count:
+
+      .. code-block:: sh
+
+         kubectl --context <operator-context> -n <operator-namespace> \
+           get deployment <operator-name> \
+           -o jsonpath='{.spec.replicas}{"\n"}'
+
+      Scale the operator to zero, and wait for its |k8s-pods| to
+      be deleted:
+
+      .. code-block:: sh
+
+         kubectl --context <operator-context> -n <operator-namespace> \
+           scale deployment <operator-name> --replicas=0
+         kubectl --context <operator-context> -n <operator-namespace> \
+           wait --for=delete pod --timeout=300s \
+           -l app.kubernetes.io/name=<operator-name>
+
+      Scale the operator, **not** ``mongot``. The |helm| chart names the
+      operator Deployment ``mongodb-kubernetes-operator`` and sets
+      ``app.kubernetes.io/name: mongodb-kubernetes-operator`` on its
+      |k8s-pods|. If your installation is customized, use the
+      Deployment's actual pod selector instead of the chart label
+      shown in this example. Stop all responsible operator
+      |k8s-pods|, including terminating |k8s-pods|, before you
+      continue. Stopping a separate source database operator doesn't
+      pause the member Search operators.
+
+   .. step:: Remove only the StatefulSet definitions.
+
+      Run the following command for each |k8s-statefulset| that you
+      identified in step 1:
+
+      .. code-block:: sh
+
+         kubectl --context <member-context> -n <namespace> \
+           delete sts <statefulset-name> --cascade=orphan \
+           --timeout=300s
+
+      Confirm that each |k8s-statefulset| is absent while its
+      existing ``mongot`` |k8s-pods| and |k8s-pvcs| remain intact
+      and without deletion timestamps. Don't delete the
+      MongoDBSearch resource or scale ``mongot`` down.
+
+   .. step:: Update the existing Search resources.
+
+      .. code-block:: sh
+
+         kubectl --context <search-resource-context> -n <namespace> \
+           edit mongodbsearch <search-name>
+
+      Change the affected cluster entry's
+      ``persistence.single.storage`` value:
+
+      .. code-block:: yaml
+
+         persistence:
+           single:
+             storage: 2Gi
+
+      In a |k8s-op-short| per member cluster deployment, update the
+      corresponding setting in every local Search resource.
+
+      Keep the existing storage class, cluster entries, indexes,
+      replicas, and other settings. Removing a cluster entry can
+      delete that cluster's Search resources and claims.
+
+      Read the Search resources back to confirm that the new
+      effective sizes persisted. The targeted |k8s-statefulsets|
+      must remain absent until you resume the operators.
+
+   .. step:: Resume the operators.
+
+      Restore each operator's own recorded replica count:
+
+      .. code-block:: sh
+
+         kubectl --context <operator-context> -n <operator-namespace> \
+           scale deployment <operator-name> \
+           --replicas=<original-replicas>
+         kubectl --context <operator-context> -n <operator-namespace> \
+           rollout status deployment/<operator-name> --timeout=600s
+
+      Wait for each |k8s-statefulset| to reappear with the expanded
+      ``data`` claim template. The new |k8s-statefulset| adopts the
+      existing |k8s-pods| and claims.
+
+   .. step:: Restart the ``mongot`` pods if the file system requires it.
+
+      If the ``FileSystemResizePending`` condition persists, delete
+      the affected ``mongot`` |k8s-pods| **one at a time**:
+
+      .. code-block:: sh
+
+         kubectl --context <member-context> -n <namespace> \
+           delete pod <mongot-pod-name> --timeout=300s
+         kubectl --context <member-context> -n <namespace> \
+           wait --for=condition=Ready pod/<mongot-pod-name> \
+           --timeout=600s
+
+      Wait for the replacement |k8s-pod| to exist before you run the
+      readiness command. Restart the next |k8s-pod| only after the
+      replacement is ready and the condition clears. Skip this step
+      if the expansion completes online.
+
+      .. note::
+
+         Deleting a |k8s-pod| directly bypasses
+         PodDisruptionBudgets. A single ``mongot`` replica can't
+         serve requests while it restarts. This procedure doesn't
+         guarantee zero downtime.
+
+   .. step:: Verify storage and Search readiness.
+
+      Confirm that each |k8s-pvc| reports at least the requested
+      capacity, that all expected ``mongot`` |k8s-pods| are ready,
+      and that each Search resource reaches the ``Running`` phase
+      after reconciliation.
+
+Troubleshoot Expansion
+----------------------
+
+If a step fails while the operators are stopped, keep the Search
+resources, its |k8s-pods|, and claims intact. Correct the effective
+storage settings, then restore every paused operator to its original
+replica count. If you resume before you correct the configuration,
+complete the procedure later rather than shrinking or deleting a
+claim.
+
+If a |k8s-pod| or claim starts deleting, stop further deletions and
+contact your |k8s| or storage administrator. Don't remove finalizers
+or edit ``PV.spec.capacity`` as a workaround.
+
+Learn More
+----------
+
+- To increase storage for other |k8s-op-short| resources, see
+  :ref:`k8s-resize-storage`.
+- To review the ``mongot`` storage settings, see the
+  :ref:`spec.clusters[].persistence <mdbsearch-spec-persistence-single>`
+  setting.
+- To learn about the MongoDBSearch resource settings, see
+  :ref:`k8s-fts-vs-settings`.

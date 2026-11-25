@@ -1,0 +1,38 @@
+START-one-member-replica-set
+---
+apiVersion: mongodb.com/v1
+kind: MongoDB
+metadata:
+  name: <my-replica-set>
+  namespace: <my-namespace>
+spec:
+  members: 1
+  # Must match the MongoDB version of the standalone deployment
+  version: "<mongodb-version>"
+  opsManager:
+    configMapRef:
+      # Must match metadata.name in the new project ConfigMap file
+      name: <configMap.metadata.name>
+  # Can match the credentials Secret that the standalone deployment uses
+  credentials: <mycredentials>
+  type: ReplicaSet
+  persistent: true
+...
+END-one-member-replica-set
+
+START-mongodb-tools-pod
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mongodb-tools
+  namespace: <my-namespace>
+spec:
+  containers:
+  - name: mongodb-tools
+    # Use the standalone's MongoDB version without the -ent
+    # suffix, for example 8.0.4
+    image: quay.io/mongodb/mongodb-enterprise-server:<mongodb-version>-ubi9
+    command: ["sleep", "infinity"]
+...
+END-mongodb-tools-pod

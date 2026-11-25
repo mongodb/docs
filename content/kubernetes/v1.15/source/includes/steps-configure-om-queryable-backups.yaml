@@ -1,0 +1,122 @@
+---
+ref: configure-kubectl-om
+stepnum: 1
+inherit:
+  file: steps-configure-kubectl-namespace.yaml
+  ref: configure-kubectl-namespace
+---
+stepnum: 2
+level: 4
+ref: create-pem-file
+title: "Create the PEM file for backups."
+content: |
+    
+    Create the :opsmgr:`Ops Manager queryable.pem </reference/configuration/#brs.queryable.pem>`
+    file that you will use for accessing and querying backups based on
+    your deployment's |tls| requirements. The PEM file contains a public
+    key certificate and its associated private key that are needed to
+    access and run queries on backup snapshots in |onprem|.
+
+    To learn more about the PEM file's requirements, see
+    :opsmgr:`Authorization and Authentication Requirements in Ops Manager
+    </tutorial/query-backup/#authentication-and-authorization>`.
+---
+stepnum: 3
+level: 4
+ref: create-queryable-pem-secret
+title: "Create a secret containing the PEM file."
+content: |
+  Run the following command to create a secret with the
+  :opsmgr:`queryable.pem </reference/configuration/#brs.queryable.pem>`
+  file that you created in the previous step:
+
+  .. code-block:: sh
+
+     kubectl create secret generic queryable-pem --from-file=./queryable.pem
+
+  .. include:: /includes/facts/fact-if-use-vault.rst
+
+  .. include:: /includes/facts/fact-learn-more-secret-storage.rst
+---
+title: "Configure |onprem| custom resource to use the secret."
+stepnum: 4
+level: 4
+ref: mount-pem-secret
+content: |
+
+  Configure :opsmgrkube:`spec.backup.queryableBackupSecretRef.name` to
+  reference the :opsmgr:`queryable.pem </reference/configuration/#brs.queryable.pem>`
+  secret.
+
+  .. code-block:: yaml
+     :linenos:
+     :emphasize-lines: 8-12
+
+       apiVersion: mongodb.com/v1
+       kind: MongoDBOpsManager
+       metadata:
+         name: ops-manager
+       spec:
+         replicas: 1
+         version: 8.0.0
+         adminCredentials: ops-manager-admin-secret
+         backup:
+           enabled: true
+           queryableBackupSecretRef:
+             name: om-queryable-pem
+
+---
+title: "Save your |onprem| config file."
+stepnum: 5
+level: 4
+ref: save-config-file
+
+---
+title: "Apply changes to your |onprem| deployment."
+stepnum: 6
+level: 4
+ref: apply-queryable-backup-changes-om-k8s
+content: |
+
+     Invoke the following ``kubectl`` command on the filename of the
+     |onprem| resource definition:
+
+     .. code-block:: sh
+
+        kubectl apply -f <opsmgr-resource>.yaml
+
+     When you apply the changes to your |onprem| resource
+     definition, |k8s| updates the |onprem| StatefulSet,
+     creates the volumes, and mounts the Secrets.
+
+---
+stepnum: 7
+title: "Track the status of the mounted volumes and Secrets."
+level: 4
+ref: track-k8s-deployment-om-queryable-backup-config
+content: |
+
+   a. Obtain the list of persistent volume claims:
+
+      .. code-block:: sh
+
+         kubectl get pvc
+
+   #. Obtain the Secrets:
+      
+      .. code-block:: sh
+
+         kubectl get secrets
+
+   #. Check the status of your |onprem| resources:
+    
+      .. code-block:: sh
+         
+         kubectl get om <resource-name> -o yaml -w
+
+      The ``-w`` flag means "watch". With the "watch" flag set, the
+      output refreshes immediately when the configuration changes until
+      the status phase achieves the ``Running`` state.
+
+      To learn more about the resource deployment statuses, see
+      :doc:`/reference/troubleshooting`.

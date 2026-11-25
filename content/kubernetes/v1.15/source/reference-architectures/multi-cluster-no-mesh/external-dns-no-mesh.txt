@@ -1,0 +1,92 @@
+.. _reference-architectures-external-dns-no-mesh:
+
+======================
+Configure External DNS
+======================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page walks you through the process of deploying and validating external DNS 
+for your |k8s-op-short| components deployed across multiple |k8s| clusters 
+without a :ref:`service mesh <reference-architectures-istio-service-mesh>`. 
+
+Prerequisites
+-------------
+
+Before you begin, perform the following tasks:
+
+- Install ``kubectl``.
+- Update as needed and set the environment variables defined in the following  ``env_variables.sh`` file.
+
+  .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-09-setup-externaldns/env_variables.sh
+    :language: bash
+    :linenos:
+
+Source Code
+-----------
+
+You can find all included source code in the :github:`MongoDB Kubernetes Operator repository </mongodb/mongodb-kubernetes/tree/{+github-branch+}/public/architectures/setup-multi-cluster/ra-03-setup-istio>`.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a GCP service account for ExternalDNS.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-09-setup-externaldns/code_snippets/ra-09_0100_create_gke_sa.sh
+         :language: sh
+
+   .. step:: Add the DNS admin role to your GCP service account.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-09-setup-externaldns/code_snippets/ra-09_0120_add_role_to_sa.sh
+         :language: sh
+
+   .. step:: Create GCP service account key.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-09-setup-externaldns/code_snippets/ra-09_0130_create_sa_key.sh
+         :language: sh
+
+   .. step:: Create a |k8s| namespace for deploying ExternalDNS.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-09-setup-externaldns/code_snippets/ra-09_0140_create_namespaces.sh
+         :language: sh
+
+   .. step:: Create a |k8s| Secret containing the service account key.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-09-setup-externaldns/code_snippets/ra-09_0150_create_sa_secrets.sh
+         :language: sh
+
+   .. step:: Install ExternalDNS.
+
+      ExternalDNS makes |k8s| resources discoverable via public DNS servers. 
+      Deploy the ``eternal-dns`` |k8s| deployment and related permissions objects 
+      to the namespace you just created. 
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-09-setup-externaldns/code_snippets/ra-09_0200_install_externaldns.sh
+         :language: sh
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-09-setup-externaldns/yamls/externaldns.yaml
+         :language: yaml
+
+   .. step:: Set up the DNS zone.
+
+      This example includes a private DNS zone. This means that you can only 
+      access the resources deployed in the DNS zone from the GKE clusters we 
+      created. If you are planning to access your resources from outside your 
+      GKE clusters, use a public DNS zone. To do so, you must have a 
+      `registered domain <https://en.wikipedia.org/wiki/Domain_name_registry>`__.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-09-setup-externaldns/code_snippets/ra-09_0300_setup_dns_zone.sh
+         :language: sh

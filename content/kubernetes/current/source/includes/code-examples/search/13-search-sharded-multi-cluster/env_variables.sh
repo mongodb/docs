@@ -15,7 +15,7 @@ export MDB_EXTERNAL_SHARD_1_NAME="${MDB_EXTERNAL_CLUSTER_NAME}-1"
 export MDB_EXTERNAL_SHARD_2_NAME="${MDB_EXTERNAL_CLUSTER_NAME}-2"
 
 # MongoDB version used by the optional query tools pod.
-export MDB_VERSION="8.2.6-ent"
+export MDB_VERSION="8.3.13-ent"
 
 # Existing search-sync-source user password.
 export MDB_SEARCH_SYNC_USER_PASSWORD="<search-sync-source password>"
