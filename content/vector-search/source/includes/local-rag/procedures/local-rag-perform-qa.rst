@@ -1,6 +1,3 @@
-.. Changes to this file must also be applied to:
-   content/atlas/source/includes/ai-integrations/langchain/local-rag-perform-qa.rst
-
 .. procedure::
    :style: normal
 
