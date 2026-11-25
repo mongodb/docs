@@ -57,6 +57,22 @@
               ]
             }
 
+         If your |s3| bucket uses server-side encryption with a
+         customer-managed |aws| |kms| key, add the following statement
+         to the ``Statement`` array. Replace the placeholders with the
+         region, account ID, and key ID for your |aws| |kms| key:
+
+         .. code-block:: json
+
+            {
+              "Effect": "Allow",
+              "Action": [
+                "kms:Decrypt",
+                "kms:GenerateDataKey"
+              ],
+              "Resource": "arn:aws:kms:<region>:<account>:key/<key-id>"
+            }
+
       b. Copy the following |aws| CLI commands and replace the
          ``<roleName>`` placeholders with your |aws| IAM role name.
          Then, run the commands from the command prompt to create and
