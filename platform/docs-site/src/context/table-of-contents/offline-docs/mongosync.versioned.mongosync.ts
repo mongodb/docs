@@ -295,6 +295,14 @@ export const toc: L1TocItem[] = [
             url: '/docs/mongosync/:version/release-notes',
             items: [
               {
+                label: '1.23',
+                contentSite: 'mongosync',
+                url: '/docs/mongosync/:version/release-notes/1.23',
+                versions: {
+                  excludes: ['v1.20', 'v1.21', 'v1.22'],
+                },
+              },
+              {
                 label: '1.22',
                 contentSite: 'mongosync',
                 url: '/docs/mongosync/:version/release-notes/1.22',

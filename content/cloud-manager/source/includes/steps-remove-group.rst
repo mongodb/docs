@@ -23,6 +23,6 @@
          * - {+aagent+}s
            - Stop the agent's process on each server.
          * - {+magent+}
-           - See :ref:`stop-monitoring-agent` and :doc:`/tutorial/delete-monitoring-agent`.
+           - See :ref:`stop-monitoring-agent` and :ref:`delete-monitoring-agent`.
          * - {+bagent+}
-           - See :ref:`stop-backup-agent` and :doc:`/tutorial/delete-backup-agent`. 
+           - See :ref:`stop-backup-agent` and :ref:`delete-backup-agent`. 

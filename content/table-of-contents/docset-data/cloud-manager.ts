@@ -690,7 +690,6 @@ const tocData: TocItem[] = [
               {
                 label: 'Manage Users & Roles',
                 contentSite: 'cloud-manager',
-                url: '/docs/cloud-manager/tutorial/nav/access-control-mongodb',
                 collapsible: true,
                 items: [
                   {
@@ -819,6 +818,7 @@ const tocData: TocItem[] = [
           {
             label: 'Update',
             contentSite: 'cloud-manager',
+            url: '/docs/cloud-manager/tutorial/nav/update-mongodb-agent',
             collapsible: true,
             items: [
               {
@@ -866,7 +866,6 @@ const tocData: TocItem[] = [
           {
             label: 'Configure for Access Control',
             contentSite: 'cloud-manager',
-            url: '/docs/cloud-manager/tutorial/nav/configure-mongodb-agent',
             collapsible: true,
             items: [
               {
@@ -1651,7 +1650,6 @@ const tocData: TocItem[] = [
               {
                 label: 'Programmatic API Keys',
                 contentSite: 'cloud-manager',
-                url: '/docs/cloud-manager/reference/api/nav/prog-api-keys',
                 collapsible: true,
                 items: [
                   {
@@ -1753,7 +1751,6 @@ const tocData: TocItem[] = [
               {
                 label: 'Service Accounts',
                 contentSite: 'cloud-manager',
-                url: '/docs/cloud-manager/reference/api/nav/service-accounts',
                 collapsible: true,
                 items: [
                   {
@@ -1913,7 +1910,6 @@ const tocData: TocItem[] = [
               {
                 label: 'Organizations & Teams',
                 contentSite: 'cloud-manager',
-                url: '/docs/cloud-manager/reference/api/nav/organizations-and-teams',
                 collapsible: true,
                 items: [
                   {

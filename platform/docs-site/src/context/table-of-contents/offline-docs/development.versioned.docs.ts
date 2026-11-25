@@ -9199,6 +9199,19 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/ai-integrations/spring-ai',
                   },
                   {
+                    label: 'DocArray',
+                    contentSite: 'cloud-docs',
+                    collapsible: true,
+                    url: '/docs/atlas/ai-integrations/docarray',
+                    items: [
+                      {
+                        label: 'Get Started',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/ai-integrations/docarray/get-started',
+                      },
+                    ],
+                  },
+                  {
                     label: 'Vercel AI SDK',
                     contentSite: 'cloud-docs',
                     collapsible: true,

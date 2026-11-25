@@ -696,7 +696,6 @@ export const toc: L1TocItem[] = [
                     label: 'Manage Users & Roles',
                     contentSite: 'cloud-manager',
                     collapsible: true,
-                    url: '/docs/cloud-manager/tutorial/nav/access-control-mongodb',
                     items: [
                       {
                         label: 'Manage MongoDB Users',
@@ -825,6 +824,7 @@ export const toc: L1TocItem[] = [
                 label: 'Update',
                 contentSite: 'cloud-manager',
                 collapsible: true,
+                url: '/docs/cloud-manager/tutorial/nav/update-mongodb-agent',
                 items: [
                   {
                     label: 'All Legacy Agents',
@@ -872,7 +872,6 @@ export const toc: L1TocItem[] = [
                 label: 'Configure for Access Control',
                 contentSite: 'cloud-manager',
                 collapsible: true,
-                url: '/docs/cloud-manager/tutorial/nav/configure-mongodb-agent',
                 items: [
                   {
                     label: 'SCRAM-SHA',
@@ -1657,7 +1656,6 @@ export const toc: L1TocItem[] = [
                     label: 'Programmatic API Keys',
                     contentSite: 'cloud-manager',
                     collapsible: true,
-                    url: '/docs/cloud-manager/reference/api/nav/prog-api-keys',
                     items: [
                       {
                         label: 'Organization API Keys',
@@ -1759,7 +1757,6 @@ export const toc: L1TocItem[] = [
                     label: 'Service Accounts',
                     contentSite: 'cloud-manager',
                     collapsible: true,
-                    url: '/docs/cloud-manager/reference/api/nav/service-accounts',
                     items: [
                       {
                         label: 'Generate Token',
@@ -1919,7 +1916,6 @@ export const toc: L1TocItem[] = [
                     label: 'Organizations & Teams',
                     contentSite: 'cloud-manager',
                     collapsible: true,
-                    url: '/docs/cloud-manager/reference/api/nav/organizations-and-teams',
                     items: [
                       {
                         label: 'Organizations',
