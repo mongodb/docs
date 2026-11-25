@@ -467,7 +467,7 @@ export const toc: L1TocItem[] = [
           {
             label: 'API Documentation',
             isExternal: true,
-            url: 'https://mongodb.github.io/node-mongodb-native/6.21',
+            url: 'https://mongodb.github.io/node-mongodb-native/6.22',
             versions: {
               includes: ['v6.x'],
             },
