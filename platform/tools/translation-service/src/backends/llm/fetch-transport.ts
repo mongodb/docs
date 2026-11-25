@@ -79,7 +79,8 @@ export function createFetchTransport(
   return async (request: TransportRequest): Promise<TransportResponse> => {
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {
-        return await attemptOnce(request, timeoutMs, provider, fetchImpl);
+        const response = await attemptOnce(request, timeoutMs, provider, fetchImpl);
+        return attempt === 1 ? response : { ...response, attempts: attempt };
       } catch (cause) {
         if (
           !(cause instanceof BackendError) ||

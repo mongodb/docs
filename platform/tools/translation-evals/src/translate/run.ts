@@ -10,7 +10,7 @@ import {
   setTranslator,
   type TranslatorMetaView,
 } from '../run/manifest.js';
-import { logLine } from '../suite/log.js';
+import { clip, logLine } from '../suite/log.js';
 import { makeTranslateFn, translateMdxFile } from './batch.js';
 import { backendHasModel, resolveBackendName } from './backend.js';
 import { translateSubstitutions, type SubValue } from './references.js';
@@ -53,6 +53,13 @@ export async function translateRun(
 
   const metas: TranslatorMetaView[] = [];
   const scope = process.env.SUITE_SCOPE;
+  const logTranslateFailure = (file: string, msg: string, keys?: string) =>
+    logLine({
+      scope,
+      event: 'warn',
+      subject: 'translate',
+      attrs: { file, err: clip(msg), keys },
+    });
 
   for (const locale of targets) {
     // A caller-supplied translateFn reports no meta, so the record honestly
@@ -62,29 +69,24 @@ export async function translateRun(
       makeTranslateFn(cfg, locale, undefined, (meta) => metas.push(meta));
     const files: Record<string, string> = {};
     const failures: TranslateFailure[] = [];
-    let retried = 0;
+    let rebuilt = 0;
 
     for (const rel of [...m.translatable.pages, ...m.translatable.includes]) {
       try {
         const src = fs.readFileSync(path.join(projectDir, rel), 'utf8');
         files[rel] = await translateMdxFile(src, cfg, locale, fn, (info) => {
-          retried++;
+          rebuilt++;
           logLine({
             scope,
             event: 'warn',
-            subject: 'translate retrying',
+            subject: 'translate rebuilding',
             attrs: { file: rel, reason: info.reason },
           });
         });
       } catch (err) {
         const msg = describe(err);
         failures.push({ file: rel, error: msg });
-        logLine({
-          scope,
-          event: 'warn',
-          subject: 'translate',
-          attrs: { file: rel, keys: keyCount(msg) },
-        });
+        logTranslateFailure(rel, msg, keyCount(msg));
       }
     }
 
@@ -93,7 +95,7 @@ export async function translateRun(
       scope,
       event: 'info',
       subject: 'stage=translate',
-      attrs: { locale, files: `${Object.keys(files).length}/${total}`, retried: retried || undefined },
+      attrs: { locale, files: `${Object.keys(files).length}/${total}`, rebuilt: rebuilt || undefined },
     });
 
     const refsPath = path.join(projectDir, REFERENCES_FILE);
@@ -111,7 +113,9 @@ export async function translateRun(
         );
         files[REFERENCES_FILE] = JSON.stringify(refs, null, 2);
       } catch (err) {
-        failures.push({ file: REFERENCES_FILE, error: describe(err) });
+        const msg = describe(err);
+        failures.push({ file: REFERENCES_FILE, error: msg });
+        logTranslateFailure(REFERENCES_FILE, msg);
       }
     }
 

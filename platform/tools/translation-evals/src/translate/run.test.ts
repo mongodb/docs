@@ -96,7 +96,9 @@ describe('translateRun', () => {
     await translateRun(cfg, 'atlas', 'r', undefined, failOnBody);
 
     spy.mockRestore();
-    expect(lines.some((l) => /warn {2}translate file=_includes\/a\.mdx/.test(l))).toBe(true);
+    expect(
+      lines.some((l) => /warn {2}translate file=_includes\/a\.mdx err="backend down"/.test(l)),
+    ).toBe(true);
     expect(lines.some((l) => /info {2}stage=translate locale=es files=\d+\/\d+/.test(l))).toBe(
       true,
     );
@@ -105,7 +107,7 @@ describe('translateRun', () => {
     );
   });
 
-  it('logs and counts a retry when the adapter re-sends a file', async () => {
+  it('logs and counts a rebuild when the adapter re-sends a file', async () => {
     const { cfg } = setup();
     const lines: string[] = [];
     const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
@@ -123,11 +125,33 @@ describe('translateRun', () => {
     spy.mockRestore();
     expect(summary.failures.es).toEqual([]);
     expect(
-      lines.some((l) => /warn {2}translate retrying file=_includes\/a\.mdx reason=service/.test(l)),
+      lines.some((l) => /warn {2}translate rebuilding file=_includes\/a\.mdx reason=service/.test(l)),
     ).toBe(true);
-    expect(lines.some((l) => l.includes('info  stage=translate locale=es files=2/2 retried=1'))).toBe(
+    expect(lines.some((l) => l.includes('info  stage=translate locale=es files=2/2 rebuilt=1'))).toBe(
       true,
     );
+  });
+
+  it('logs a references translation failure with its error', async () => {
+    const { cfg } = setup();
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
+    const failReferences = async (p: Record<string, string>) => {
+      if (Object.values(p).includes('Atlas')) throw new Error('references backend down');
+      return { ...p };
+    };
+
+    const summary = await translateRun(cfg, 'atlas', 'r', ['es'], failReferences);
+
+    spy.mockRestore();
+    expect(summary.failures.es).toEqual([
+      { file: '_references.json', error: 'references backend down' },
+    ]);
+    expect(
+      lines.some((l) =>
+        /warn {2}translate file=_references\.json err="references backend down"/.test(l),
+      ),
+    ).toBe(true);
   });
 
   it('keeps failure records for locales that were not rerun', async () => {

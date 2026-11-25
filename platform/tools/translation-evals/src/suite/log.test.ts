@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { formatLogLine, logLine } from './log.js';
+import { clip, formatLogLine, logLine } from './log.js';
 
 const at = new Date('2026-11-12T14:11:04.778Z');
 
@@ -50,6 +50,18 @@ describe('formatLogLine', () => {
     const rendered = formatLogLine({ event: 'info', subject: 'scrape', attrs: { msg: 'a\nb' } }, at);
     expect(rendered).toBe('2026-11-12T14:11:04Z info  scrape msg="a b"');
     expect(rendered).not.toMatch(/[\r\n]/);
+  });
+});
+
+describe('clip', () => {
+  it('collapses whitespace and truncates to the limit', () => {
+    const clipped = clip(`first line\nsecond line ${'x'.repeat(250)}`, 200);
+    expect(clipped).toHaveLength(200);
+    expect(clipped).toMatch(/^first line second line x+\.\.\.$/);
+  });
+
+  it('leaves a short message unchanged', () => {
+    expect(clip('backend down')).toBe('backend down');
   });
 });
 

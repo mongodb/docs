@@ -48,7 +48,7 @@ export function createJudgeOptions(
         body,
       });
       if (!response.ok) throw new Error(`Anthropic returned HTTP ${response.status}`);
-      return response.text();
+      return { raw: await response.text(), attempts: response.attempts };
     };
 
     return {
@@ -72,7 +72,7 @@ export function createJudgeOptions(
       body,
     });
     if (!response.ok) throw new Error(`Grove returned HTTP ${response.status}`);
-    return response.text();
+    return { raw: await response.text(), attempts: response.attempts };
   };
 
   return { transport: judgeTransport, model: openai.model };

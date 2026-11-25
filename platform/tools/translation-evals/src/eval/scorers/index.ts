@@ -1,7 +1,13 @@
 import type { EvalScorer } from 'braintrust';
 import type { Glossary } from '@mongodb-docs/translation-service';
 import type { DatasetRow } from '../../types.js';
-import { judgeTranslation, scoreFactuality, type JudgeOptions } from '../judge/judge.js';
+import {
+  judgeTranslation,
+  scoreFactuality,
+  type JudgeOptions,
+  type JudgeResult,
+} from '../judge/judge.js';
+import { clip, logLine } from '../../suite/log.js';
 import type { IssueType } from '../judge/prompt.js';
 import { referenceSimilarity, terminologyPreserved } from './deterministic.js';
 import { languageIntegrity } from './language.js';
@@ -115,10 +121,24 @@ export function toEvalScorers(glossary: Glossary, judgeOpts: JudgeOptions): Scor
     named('judge', async ({ input, output, expected, metadata }) => {
       if (isInclude(metadata)) return nullJudgeScores(INCLUDE_REASON);
       if (isEmptyScrape(output)) return nullJudgeScores(EMPTY_SCRAPE_REASON);
-      const result = await judgeTranslation(
-        { source: input.source_text, output, reference: expected, locale: input.target_locale },
-        judgeOpts,
-      );
+      const logJudge = (attrs: Record<string, string | number>) =>
+        logLine({
+          scope: process.env.SUITE_SCOPE,
+          event: 'warn',
+          subject: 'judge',
+          attrs: { locale: input.target_locale, slug: metadata.slug, ...attrs },
+        });
+      let result: JudgeResult;
+      try {
+        result = await judgeTranslation(
+          { source: input.source_text, output, reference: expected, locale: input.target_locale },
+          judgeOpts,
+        );
+      } catch (err) {
+        logJudge({ err: clip(err instanceof Error ? err.message : String(err)) });
+        throw err;
+      }
+      if (result.attempts) logJudge({ attempts: result.attempts });
       const scores = scoreFactuality(
         result.issues,
         metadata.own_segments ?? input.segments?.length ?? 0,

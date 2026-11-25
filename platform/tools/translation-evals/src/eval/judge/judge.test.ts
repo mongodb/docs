@@ -37,8 +37,15 @@ function messagesEnvelope(payload: unknown): string {
   });
 }
 
-function optsReturning(raw: string, model = 'judge-model'): JudgeOptions {
-  return { transport: async () => raw, model };
+function optsReturning(
+  raw: string,
+  model = 'judge-model',
+  attempts?: number,
+): JudgeOptions {
+  return {
+    model,
+    transport: async () => ({ raw, attempts }),
+  };
 }
 
 describe('buildJudgePrompt', () => {
@@ -66,6 +73,14 @@ describe('judgeTranslation', () => {
     expect(r.issues).toEqual([]);
     expect(r.fluency).toBe(1);
     expect(r.rationale).toBe('faithful');
+  });
+
+  it('reports transport attempts when the judge retried', async () => {
+    const r = await judgeTranslation(
+      INPUT,
+      optsReturning(envelope({ issues: [], rationale: 'faithful', fluency: 5 }), 'judge-model', 2),
+    );
+    expect(r.attempts).toBe(2);
   });
 
   it('parses each issue with its type, severity, quote and explanation', async () => {
@@ -244,11 +259,11 @@ describe('createJudgeOptions', () => {
     const opts = createJudgeOptions(loadConfig(env), env, fake);
     expect(opts.model).toBe('judge-model');
 
-    const raw = await opts.transport('{"probe":true}');
+    const result = await opts.transport('{"probe":true}');
     expect(seen!.url).toBe('https://grove.test/v1/responses');
     expect(seen!.headers['api-key']).toBe('k');
     expect(seen!.body).toBe('{"probe":true}');
-    expect(JSON.parse(raw).output_text).toContain('"issues":[]');
+    expect(JSON.parse(result.raw).output_text).toContain('"issues":[]');
   });
 
   it('throws when the gateway responds with a non-ok status', async () => {

@@ -179,6 +179,7 @@ describe("createFetchTransport retry", () => {
     expect(signals[1]?.aborted).toBe(false);
     expect(response.ok).toBe(true);
     expect(response.status).toBe(200);
+    expect(response.attempts).toBe(2);
     expect(await response.text()).toBe("second-body");
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledWith(

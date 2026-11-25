@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import type { Glossary } from '@mongodb-docs/translation-service';
 import type { JudgeOptions } from '../judge/judge.js';
 import type { SegmentPair } from '../../types.js';
@@ -51,7 +51,7 @@ const driverSeg: SegmentPair[] = [{ key: 'paragraph[0]', en: 'Use the driver.', 
 function judgeReturning(payload: Record<string, unknown>): JudgeOptions {
   return {
     model: 'judge-model',
-    transport: async () => JSON.stringify({ output_text: JSON.stringify(payload) }),
+    transport: async () => ({ raw: JSON.stringify({ output_text: JSON.stringify(payload) }) }),
   };
 }
 
@@ -131,13 +131,15 @@ describe('toEvalScorers', () => {
       model: 'judge-model',
       transport: async (requestBody) => {
         body = requestBody;
-        return JSON.stringify({
-          output_text: JSON.stringify({
-            issues: [{ type: 'contradiction', severity: 'critical', quote: 'q', explanation: 'e' }],
-            rationale: 'drift',
-            fluency: 2,
+        return {
+          raw: JSON.stringify({
+            output_text: JSON.stringify({
+              issues: [{ type: 'contradiction', severity: 'critical', quote: 'q', explanation: 'e' }],
+              rationale: 'drift',
+              fluency: 2,
+            }),
           }),
-        });
+        };
       },
     };
     const g: Glossary = {
@@ -207,7 +209,9 @@ describe('toEvalScorers', () => {
       model: 'judge-model',
       transport: async () => {
         judgeCalled = true;
-        return JSON.stringify({ output_text: JSON.stringify({ issues: [], rationale: 'ok', fluency: 5 }) });
+        return {
+          raw: JSON.stringify({ output_text: JSON.stringify({ issues: [], rationale: 'ok', fluency: 5 }) }),
+        };
       },
     };
     const scorers = toEvalScorers(GLOSSARY, judge);
@@ -234,6 +238,49 @@ describe('toEvalScorers', () => {
     expect((first as { metadata?: { reason?: string } }).metadata?.reason).toContain('glossary');
   });
 
+  it('logs a successful judge retry with page context', async () => {
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((line: string) => void lines.push(line));
+    const judge: JudgeOptions = {
+      model: 'judge-model',
+      transport: async () => ({
+        raw: JSON.stringify({
+          output_text: JSON.stringify({ issues: [], rationale: 'faithful', fluency: 5 }),
+        }),
+        attempts: 2,
+      }),
+    };
+    const scorers = toEvalScorers(GLOSSARY, judge);
+    try {
+      await scorers[3]!(args('Añade un usuario.', 'Add a user.'));
+    } finally {
+      spy.mockRestore();
+    }
+    expect(lines.some((l) => /warn {2}judge locale=es slug=alerts attempts=2/.test(l))).toBe(true);
+  });
+
+  it('logs a judge failure with page context and rethrows it', async () => {
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((line: string) => void lines.push(line));
+    const judge: JudgeOptions = {
+      model: 'judge-model',
+      transport: async () => {
+        throw new Error('judge offline');
+      },
+    };
+    const scorers = toEvalScorers(GLOSSARY, judge);
+    try {
+      await expect(scorers[3]!(args('Añade un usuario.', 'Add a user.'))).rejects.toThrow(
+        'judge offline',
+      );
+    } finally {
+      spy.mockRestore();
+    }
+    expect(
+      lines.some((l) => /warn {2}judge locale=es slug=alerts err="judge offline"/.test(l)),
+    ).toBe(true);
+  });
+
   it('judges the page in one call, with the reference, and scales distortion by segment count', async () => {
     const prompts: string[] = [];
     const judge: JudgeOptions = {
@@ -241,14 +288,16 @@ describe('toEvalScorers', () => {
       transport: async (requestBody) => {
         const sent = JSON.parse(requestBody) as { input: Array<{ content: Array<{ text: string }> }> };
         prompts.push(sent.input[1]!.content[0]!.text);
-        return JSON.stringify({
-          output_text: JSON.stringify({
-            issues: [{ type: 'distortion', severity: 'critical', quote: 'q', explanation: 'e' }],
-            rationale: 'r',
-            fluency: 5,
-            agreement: 5,
+        return {
+          raw: JSON.stringify({
+            output_text: JSON.stringify({
+              issues: [{ type: 'distortion', severity: 'critical', quote: 'q', explanation: 'e' }],
+              rationale: 'r',
+              fluency: 5,
+              agreement: 5,
+            }),
           }),
-        });
+        };
       },
     };
     const segments: SegmentPair[] = Array.from({ length: 20 }, (_, i) => ({
@@ -283,14 +332,16 @@ describe('toEvalScorers', () => {
       transport: async (requestBody) => {
         prompts += 1;
         void JSON.parse(requestBody);
-        return JSON.stringify({
-          output_text: JSON.stringify({
-            issues: [{ type: 'distortion', severity: 'critical', quote: 'q', explanation: 'e' }],
-            rationale: 'r',
-            fluency: 5,
-            agreement: 5,
+        return {
+          raw: JSON.stringify({
+            output_text: JSON.stringify({
+              issues: [{ type: 'distortion', severity: 'critical', quote: 'q', explanation: 'e' }],
+              rationale: 'r',
+              fluency: 5,
+              agreement: 5,
+            }),
           }),
-        });
+        };
       },
     };
     const segments: SegmentPair[] = [
@@ -329,7 +380,7 @@ describe('toEvalScorers', () => {
         model: 'judge-model',
         transport: async () => {
           judgeCalled = true;
-          return '{}';
+          return { raw: '{}' };
         },
       };
       const scorers = toEvalScorers(GLOSSARY, judge);

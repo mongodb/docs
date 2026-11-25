@@ -15,11 +15,19 @@ import {
 } from './prompt.js';
 
 /**
- * Sends a request body to the judge model and returns the raw response body.
- * Injected so the judge is unit-testable without a network. See `backend.ts`
- * for the gateway-backed implementation.
+ * Sends a request body to the judge model and returns the raw response body,
+ * with the attempt count when a retry occurred. Injected so the judge is
+ * unit-testable without a network. See `backend.ts` for the gateway-backed
+ * implementation.
  */
-export type JudgeTransport = (body: string) => Promise<string>;
+export interface JudgeTransportResult {
+  raw: string;
+  attempts?: number | undefined;
+}
+
+export type JudgeTransport = (
+  body: string,
+) => Promise<JudgeTransportResult>;
 
 /** The gateway wire format a judge model is served on. */
 export type JudgeFormat = 'responses' | 'messages';
@@ -46,6 +54,8 @@ export interface JudgeResult {
   /** 0-1, mapped from the model's 1-5 rating, or null when the judge returns null. */
   agreement: number | null;
   rationale: string;
+  /** Present when the transport needed a retry. */
+  attempts?: number | undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -133,7 +143,7 @@ export async function judgeTranslation(
   input: JudgeInput,
   opts: JudgeOptions,
 ): Promise<JudgeResult> {
-  const raw = await opts.transport(buildJudgeRequest(input, opts));
+  const { raw, attempts } = await opts.transport(buildJudgeRequest(input, opts));
 
   let envelope: unknown;
   try {
@@ -162,6 +172,7 @@ export async function judgeTranslation(
     fluency,
     agreement: mapRating(parsed['agreement']),
     rationale: typeof parsed['rationale'] === 'string' ? parsed['rationale'] : '',
+    attempts,
   };
 }
 

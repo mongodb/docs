@@ -99,6 +99,8 @@ describe('runSuite', () => {
       'completed',
       'completed',
     ]);
+    expect(Object.values(state.iterations).every((r) => r.stage === undefined)).toBe(true);
+    expect(Object.values(state.iterations).every((r) => r.error === undefined)).toBe(true);
   });
 
   it('marks an iteration failed when a stage exits non-zero and continues', async () => {
@@ -152,6 +154,12 @@ describe('runSuite', () => {
       fs.readFileSync(path.join(cfg.dataDir, 'atlas', 'b', 'suite', 'state.json'), 'utf8'),
     ) as BatchState;
     expect(Object.values(state.iterations).every((r) => r.status === 'failed')).toBe(true);
+    expect(Object.values(state.iterations).every((r) => r.stage === 'serve')).toBe(true);
+    expect(
+      Object.values(state.iterations).every((r) =>
+        r.error?.includes('serve exited before ready'),
+      ),
+    ).toBe(true);
   });
 
   it('attributes the serve exit code when serve exits before ready', async () => {
@@ -930,6 +938,75 @@ describe('runSuite reporting and exit code', () => {
       lines.some((l) => /\[1\/1\] fail {2}stage=translate reason=timeout dur=\d/.test(l)),
     ).toBe(true);
     expect(lines.some((l) => /\[1\/1\] done {2}stage=translate/.test(l))).toBe(false);
+    expect(
+      lines.some((l) => /\[1\/1\] done {2}iteration status=failed dur=\S+ stage=translate/.test(l)),
+    ).toBe(true);
+    const state = readBatchState(cfg);
+    expect(state.iterations['anthropic:m#1']).toMatchObject({
+      status: 'failed',
+      stage: 'translate',
+      error: 'timeout',
+    });
+  });
+
+  it('points dataset failures to prior translation failures when they exist', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1 });
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
+    const deps = okDeps({
+      runStage: async (stage, args) => {
+        if (stage === 'resolve' || stage === 'scrape-prod') seedRunDir(args);
+        if (stage === 'translate') {
+          const runId = args[args.indexOf('--run') + 1]!;
+          fs.writeFileSync(
+            path.join(cfg.dataDir, 'atlas', runId, 'translate-failures.json'),
+            JSON.stringify({ es: [{ file: 'a.mdx', error: 'boom' }] }),
+          );
+        }
+        if (stage === 'dataset') return { code: 1, timedOut: false };
+        return { code: 0, timedOut: false };
+      },
+    });
+    try {
+      await runSuite({ configFile }, deps, cfg, TEST_ENV);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(
+      lines.some((l) =>
+        /fail {2}stage=dataset .*hint="check data\/atlas\/[^"]+\/translate-failures\.json"/.test(l),
+      ),
+    ).toBe(true);
+    expect(
+      lines.some((l) => /done {2}iteration status=failed dur=\S+ stage=dataset/.test(l)),
+    ).toBe(true);
+    const state = readBatchState(cfg);
+    expect(state.iterations['anthropic:m#1']).toMatchObject({
+      status: 'failed',
+      stage: 'dataset',
+      error: 'exit code=1',
+    });
+  });
+
+  it('omits the translation evidence hint when no translation failures exist', async () => {
+    const { configFile, cfg } = fixture({ repeats: 1 });
+    const lines: string[] = [];
+    const spy = vi.spyOn(console, 'log').mockImplementation((l: string) => void lines.push(l));
+    const deps = okDeps({
+      runStage: async (stage, args) => {
+        if (stage === 'resolve' || stage === 'scrape-prod') seedRunDir(args);
+        if (stage === 'dataset') return { code: 1, timedOut: false };
+        return { code: 0, timedOut: false };
+      },
+    });
+    try {
+      await runSuite({ configFile }, deps, cfg, TEST_ENV);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(
+      lines.some((l) => /fail {2}stage=dataset/.test(l) && l.includes('hint=')),
+    ).toBe(false);
   });
 
   it('emits a fail line when the resolve stage fails', async () => {

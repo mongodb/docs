@@ -14,6 +14,8 @@ export interface TransportResponse {
   ok: boolean;
   status: number;
   text(): Promise<string>;
+  /** Number of attempts made when preceding attempts failed. */
+  attempts?: number | undefined;
 }
 
 export type Transport = (

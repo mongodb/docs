@@ -33,3 +33,10 @@ export function formatLogLine(line: LogLine, now: Date = new Date()): string {
 export function logLine(line: LogLine): void {
   console.log(formatLogLine(line));
 }
+
+export function clip(message: string, maxLength = 200): string {
+  const singleLine = message.replace(/\s+/g, ' ').trim();
+  return singleLine.length <= maxLength
+    ? singleLine
+    : `${singleLine.slice(0, maxLength - 3)}...`;
+}

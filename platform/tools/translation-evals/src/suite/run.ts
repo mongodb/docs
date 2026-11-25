@@ -12,7 +12,7 @@ import { hasPristine, restorePristine, snapshotPristine } from './isolation.js';
 import { killTree, spawnStage, waitForExit, type StageResult } from './stage.js';
 import { waitForHttp, waitForPortFree } from './server-lifecycle.js';
 import { formatSummary, formatYield } from './progress.js';
-import { logLine } from './log.js';
+import { clip, logLine } from './log.js';
 import {
   baseFingerprint,
   planRuns,
@@ -194,6 +194,13 @@ export function failReason(result: StageResult): { reason: string; code?: number
   return { reason: 'exit', code: result.code };
 }
 
+function stageError(result: StageResult): string {
+  const failure = failReason(result);
+  return failure.code === undefined
+    ? failure.reason
+    : `${failure.reason} code=${failure.code}`;
+}
+
 function durationSeconds(startedAt: number): string {
   return `${((Date.now() - startedAt) / 1000).toFixed(1)}s`;
 }
@@ -353,8 +360,10 @@ async function runIteration(
   await ensurePortFree(deps, cfg.localOrigin);
 
   const translateAt = Date.now();
+  record.stage = 'translate';
   const translate = await deps.runStage('translate', runArgs, env, STAGE_TIMEOUT_MS);
   if (stageFailed(translate)) {
+    record.error = stageError(translate);
     logLine({
       scope,
       event: 'fail',
@@ -363,6 +372,7 @@ async function runIteration(
     });
     return 'failed';
   }
+  record.stage = undefined;
   logLine({
     scope,
     event: 'done',
@@ -380,6 +390,7 @@ async function runIteration(
     restorePristine(cfg, project, suite.name);
     await ensurePortFree(deps, cfg.localOrigin);
     const serveAt = Date.now();
+    record.stage = 'serve';
     const handle = deps.startServe([...runArgs, '--locale', locale], env);
     try {
       await Promise.race([
@@ -389,6 +400,7 @@ async function runIteration(
         }),
       ]);
       const scrapeAt = Date.now();
+      record.stage = 'scrape-local';
       const scraped = await deps.runStage(
         'scrape-local',
         [...runArgs, '--locale', locale],
@@ -396,6 +408,7 @@ async function runIteration(
         STAGE_TIMEOUT_MS,
       );
       if (stageFailed(scraped)) {
+        record.error = stageError(scraped);
         logLine({
           scope,
           event: 'fail',
@@ -404,6 +417,7 @@ async function runIteration(
         });
         return 'failed';
       }
+      record.stage = undefined;
       logLine({
         scope,
         event: 'done',
@@ -420,16 +434,26 @@ async function runIteration(
   // English source from there, so restore the pristine tree first.
   restorePristine(cfg, project, suite.name);
   const datasetAt = Date.now();
+  record.stage = 'dataset';
   const dataset = await deps.runStage('dataset', runArgs, env, STAGE_TIMEOUT_MS);
   if (stageFailed(dataset)) {
+    record.error = stageError(dataset);
+    const hint = partial
+      ? `check data/${project}/${runId}/translate-failures.json`
+      : undefined;
     logLine({
       scope,
       event: 'fail',
       subject: 'stage=dataset',
-      attrs: { ...failReason(dataset), dur: durationSeconds(datasetAt) },
+      attrs: {
+        ...failReason(dataset),
+        dur: durationSeconds(datasetAt),
+        hint,
+      },
     });
     return 'failed';
   }
+  record.stage = undefined;
   logLine({
     scope,
     event: 'done',
@@ -439,8 +463,10 @@ async function runIteration(
 
   record.experimentName = experimentNameFor(it, runId);
   const evalAt = Date.now();
+  record.stage = 'eval';
   const evaluated = await deps.runStage('eval', runArgs, env, STAGE_TIMEOUT_MS);
   if (stageFailed(evaluated)) {
+    record.error = stageError(evaluated);
     logLine({
       scope,
       event: 'fail',
@@ -449,6 +475,7 @@ async function runIteration(
     });
     return 'failed';
   }
+  record.stage = undefined;
   logLine({
     scope,
     event: 'done',
@@ -739,13 +766,14 @@ export async function runSuite(
           it,
         );
       } catch (err) {
+        const msg = clip(message(err));
         logLine({
           scope,
           event: 'fail',
           subject: 'iteration',
-          attrs: { reason: 'exception', err: message(err) },
+          attrs: { reason: 'exception', err: msg },
         });
-        record.error = message(err);
+        record.error = msg;
         status = 'failed';
       }
       record.status = status;
@@ -755,7 +783,11 @@ export async function runSuite(
         scope,
         event: 'done',
         subject: 'iteration',
-        attrs: { status, dur: durationSeconds(iterationAt) },
+        attrs: {
+          status,
+          dur: durationSeconds(iterationAt),
+          stage: status === 'failed' ? record.stage : undefined,
+        },
       });
     }
     current = undefined;
