@@ -1,0 +1,324 @@
+name: Offline bundles
+
+# DOP-7417: plans which live offline bundles are out of date, builds them in
+# parallel shards, and uploads each tarball as soon as it is built.
+#
+# Monday runs a full rebuild; Tuesday to Friday rebuild only bundles affected by
+# commits in the last 26 hours. Commits never start this workflow.
+# See platform/tools/offline-bundles-helper/DESIGN.md.
+#
+# Scheduled runs write to the prod bucket. A manual run can choose the staging
+# bucket with the environment input, which is the only way to write to staging.
+#
+# Uses the AWS_ACCESS_KEY_OFFLINE_DOCS_BUNDLES and AWS_SECRET_OFFLINE_DOCS_BUNDLES
+# secrets for S3 and NPM_AWS_KEY / NPM_AWS_SECRET for CodeArtifact.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Monday: full rebuild
+    - cron: '0 6 * * 2-5' # Tuesday to Friday: changed bundles only
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: changed rebuilds bundles affected by recent commits; all rebuilds every bundle
+        type: choice
+        options: [changed, all]
+        default: changed
+      since_hours:
+        description: Look-back window in hours for mode changed
+        default: '26'
+      environment:
+        description: Bucket to write to
+        type: choice
+        options: [prod, staging]
+        default: prod
+      shard_size:
+        description: Bundles per shard
+        default: '4'
+      snooty_version:
+        description: snooty-parser release tag
+        default: v0.20.20
+
+concurrency:
+  group: offline-bundles
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  MONDAY_CRON: '0 6 * * 1'
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      shards: ${{ steps.plan.outputs.shards }}
+      bundles: ${{ steps.plan.outputs.bundles }}
+      mode: ${{ steps.plan.outputs.mode }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # The plan reads git history, so a shallow clone would miss changes
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d648c2dd069001a242c621c8306af467f150e99d
+        with:
+          version: 10.27.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: platform/.nvmrc
+          cache: 'pnpm'
+          cache-dependency-path: platform/pnpm-lock.yaml
+
+      # Only this package and its workspace dependencies, so no CodeArtifact login is needed
+      - name: Install planner dependencies
+        working-directory: platform
+        run: pnpm install --frozen-lockfile --filter offline-bundles-helper...
+
+      - name: Select bundles
+        id: plan
+        working-directory: platform/tools/offline-bundles-helper
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          INPUT_MODE: ${{ inputs.mode }}
+          SINCE_HOURS: ${{ inputs.since_hours || '26' }}
+          SHARD_SIZE: ${{ inputs.shard_size || '4' }}
+        run: |
+          if [ "$EVENT_NAME" = "schedule" ] && [ "$SCHEDULE" = "$MONDAY_CRON" ]; then
+            MODE=all
+          elif [ "$EVENT_NAME" = "schedule" ]; then
+            MODE=changed
+          else
+            MODE="$INPUT_MODE"
+          fi
+
+          if [ "$MODE" = "all" ]; then
+            SELECTOR=(--all)
+          else
+            SELECTOR=(--since-hours "$SINCE_HOURS")
+          fi
+
+          MATRIX=$(pnpm --silent select "${SELECTOR[@]}" --matrix --shard-size "$SHARD_SIZE")
+          SHARDS=$(echo "$MATRIX" | jq '.include | length')
+          BUNDLES=$(echo "$MATRIX" | jq '[.include[].bundles | length] | add // 0')
+
+          {
+            echo "matrix=$MATRIX"
+            echo "shards=$SHARDS"
+            echo "bundles=$BUNDLES"
+            echo "mode=$MODE"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Plan"
+            echo
+            echo "Mode: \`$MODE\`. Bundles to build: **$BUNDLES** in **$SHARDS** shards."
+            echo
+            echo '```json'
+            echo "$MATRIX" | jq -r '.include[].bundles[] | "\(.tocFile) \(.version)"'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    name: Build shard ${{ matrix.shard }}
+    needs: plan
+    if: needs.plan.outputs.bundles != '0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    defaults:
+      run:
+        working-directory: platform
+    env:
+      SNOOTY_VERSION: ${{ inputs.snooty_version || 'v0.20.20' }}
+      SNOOTY_ARCH: linux
+      NEXT_TELEMETRY_DISABLED: '1'
+      PREFIX: docs/offline/
+      BUCKET: ${{ (inputs.environment || 'prod') == 'prod' && 'docs-mongodb-org-dotcomprd' || 'docs-mongodb-org-dotcomstg' }}
+      BUNDLES_JSON: ${{ toJSON(matrix.bundles) }}
+    steps:
+      # A standard runner has about 14 GB free and the largest bundles (development)
+      # fill it. These preinstalled tools are not used by this workflow. This runs
+      # first so nothing we install is removed.
+      - name: Free up disk space
+        working-directory: ${{ github.workspace }}
+        run: |
+          echo "Before:"; df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune --all --force > /dev/null 2>&1 || true
+          echo "After:"; df -h /
+
+      - name: Checkout repo
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d648c2dd069001a242c621c8306af467f150e99d
+        with:
+          version: 10.27.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: platform/.nvmrc
+          cache: 'pnpm'
+          cache-dependency-path: platform/pnpm-lock.yaml
+
+      - name: Restore Next.js build cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: platform/docs-site/.next/cache
+          key: next-cache-${{ runner.os }}-${{ hashFiles('platform/pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            next-cache-${{ runner.os }}-${{ hashFiles('platform/pnpm-lock.yaml') }}-
+            next-cache-${{ runner.os }}-
+
+      # Private @mdb/* packages install from CodeArtifact, same as platform-ci.yml.
+      - name: Configure AWS credentials (CodeArtifact)
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-access-key-id: ${{ secrets.NPM_AWS_KEY }}
+          aws-secret-access-key: ${{ secrets.NPM_AWS_SECRET }}
+          aws-region: us-east-1
+
+      - name: Authenticate with CodeArtifact
+        run: |
+          CODEARTIFACT_TOKEN=$(aws codeartifact get-authorization-token \
+            --domain mongodb --domain-owner 271346171620 --region us-east-1 \
+            --query authorizationToken --output text)
+          echo "::add-mask::$CODEARTIFACT_TOKEN"
+          echo "NPM_AWS_AUTH=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Run the script directly: turbo drops env vars it does not know about.
+      - name: Convert RST to MDX
+        working-directory: platform/snooty-ast-to-mdx
+        env:
+          SNOOTY_VERBOSE: 'true'
+          # The Linux parser bundles a Pyston library that needs an executable
+          # stack, which newer glibc refuses to load without this.
+          GLIBC_TUNABLES: glibc.rtld.execstack=2
+        run: |
+          start=$SECONDS
+          mapfile -t dirs < <(echo "$BUNDLES_JSON" | jq -r '[.[].contentPaths[]] | unique | .[]')
+          ./convertRstToMdx.sh "${dirs[@]}"
+          for dir in "${dirs[@]}"; do test -d "../../content-mdx/$dir"; done
+          echo "| Convert RST to MDX | $((SECONDS - start))s |" >> "$RUNNER_TEMP/timings.md"
+
+      - name: Build prefix map
+        working-directory: platform/docs-site
+        run: |
+          pnpm build:prefix-map
+          echo "Disk after install and conversion:"; df -h /
+          du -sh ../../content ../../content-mdx ../node_modules 2>/dev/null || true
+
+      # Each bundle is uploaded as soon as it is built, so a later failure or a
+      # timeout leaves the finished bundles in place. A failed bundle does not
+      # stop the rest of the shard; the step fails at the end.
+      - name: Build and upload bundles
+        working-directory: platform/docs-site
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_OFFLINE_DOCS_BUNDLES }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_OFFLINE_DOCS_BUNDLES }}
+          AWS_DEFAULT_REGION: us-east-2
+        run: |
+          PREFIX="${PREFIX%/}/"
+          OUTPUT_DIR="$RUNNER_TEMP/offline-bundle-output"
+          mkdir -p "$OUTPUT_DIR"
+          FAILED=0
+
+          while read -r bundle; do
+            TOC_FILE=$(echo "$bundle" | jq -r .tocFile)
+            VERSION=$(echo "$bundle" | jq -r .version)
+            NAME="${TOC_FILE}-${VERSION}.tar.gz"
+            start=$SECONDS
+            echo "::group::${TOC_FILE} ${VERSION}"
+
+            # set -e is ignored inside an if condition, so chain each step with &&:
+            # a failed build must not be tarred or uploaded over the existing object.
+            if ! {
+              rm -rf out &&
+              pnpm run build:offline -- --tocFile="$TOC_FILE" --version="$VERSION" --tocDir=offline-docs &&
+              tar -czf "$OUTPUT_DIR/$NAME" -C out ./ &&
+              aws s3 cp "$OUTPUT_DIR/$NAME" "s3://$BUCKET/${PREFIX}${NAME}" \
+                --content-type application/octet-stream \
+                --content-disposition "attachment; filename=\"$NAME\"" \
+                --metadata "source-sha=$GITHUB_SHA,parser-version=$SNOOTY_VERSION,built-at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" &&
+              # A Content-Encoding header would make browsers unzip the download.
+              ! aws s3api head-object --bucket "$BUCKET" --key "${PREFIX}${NAME}" | grep -q '"ContentEncoding"'
+            }; then
+              echo "::error::Failed to build or upload ${NAME}"
+              FAILED=$((FAILED + 1))
+              echo "| ${NAME} | failed |" >> "$RUNNER_TEMP/results.md"
+            else
+              echo "| ${NAME} | $((SECONDS - start))s |" >> "$RUNNER_TEMP/results.md"
+            fi
+
+            echo "Disk after ${NAME}: $(df -h / | awk 'NR==2 {print $3 " used, " $4 " free"}'); .next $(du -sh .next 2>/dev/null | cut -f1), out $(du -sh out 2>/dev/null | cut -f1)"
+            rm -f "$OUTPUT_DIR/$NAME"
+            echo "::endgroup::"
+          done < <(echo "$BUNDLES_JSON" | jq -c '.[]')
+
+          [ "$FAILED" -eq 0 ]
+
+      - name: Write shard summary
+        if: always()
+        run: |
+          {
+            echo "### Shard ${{ matrix.shard }}"
+            echo
+            echo "| Step | Time |"
+            echo "| :---- | :---- |"
+            cat "$RUNNER_TEMP/timings.md" 2>/dev/null || true
+            echo
+            echo "| Bundle | Result |"
+            echo "| :---- | :---- |"
+            cat "$RUNNER_TEMP/results.md" 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  summary:
+    name: Summary
+    needs: [plan, build]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Write run summary
+        env:
+          MODE: ${{ needs.plan.outputs.mode }}
+          BUNDLES: ${{ needs.plan.outputs.bundles }}
+          SHARDS: ${{ needs.plan.outputs.shards }}
+          PLAN_RESULT: ${{ needs.plan.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          {
+            echo "### Offline bundles run"
+            echo
+            echo "| Measure | Value |"
+            echo "| :---- | :---- |"
+            echo "| Mode | ${MODE:-unknown} |"
+            echo "| Bundles planned | ${BUNDLES:-0} |"
+            echo "| Shards | ${SHARDS:-0} |"
+            echo "| Plan | $PLAN_RESULT |"
+            echo "| Build | $BUILD_RESULT |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$PLAN_RESULT" != "success" ] || { [ "$BUILD_RESULT" != "success" ] && [ "$BUILD_RESULT" != "skipped" ]; }; then
+            exit 1
+          fi
