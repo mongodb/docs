@@ -203,6 +203,64 @@ jobs:
           echo "Paths to regenerate:"
           cat "$RUNNER_TEMP/paths.txt"
 
+      # The unified TOC is not a Snooty content path, so the detector never
+      # reports it. It syncs when its source changed, on full runs, and when the
+      # mirror has no copy yet. A run given explicit `paths` never syncs the TOC:
+      # it regenerates only the content paths it was given.
+      # The mirror check lists the directory rather than reading toc.json, which
+      # is too large for the default contents API response.
+      - name: Detect TOC change
+        id: toc
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          FORCED: ${{ inputs.paths }}
+          MODE: ${{ steps.mode.outputs.mode }}
+        run: |
+          set -euo pipefail
+          TOC=false
+          if [ -z "$FORCED" ]; then
+            if [ "$MODE" = "full" ]; then
+              TOC=true
+            elif grep -q '^content/table-of-contents/' "$RUNNER_TEMP/changed.txt"; then
+              TOC=true
+            else
+              set +e
+              NAMES="$(gh api "repos/${TARGET_REPO}/contents/table-of-contents?ref=main" --jq '.[].name' 2>"$RUNNER_TEMP/toc.err")"
+              STATUS=$?
+              set -e
+              if [ "$STATUS" -ne 0 ]; then
+                if grep -q 'HTTP 404' "$RUNNER_TEMP/toc.err"; then
+                  echo "Mirror has no table-of-contents/ yet"
+                  TOC=true
+                else
+                  echo "Failed to list table-of-contents/ in ${TARGET_REPO}:" >&2
+                  cat "$RUNNER_TEMP/toc.err" >&2
+                  exit 1
+                fi
+              elif ! printf '%s\n' "$NAMES" | grep -qxF 'toc.json'; then
+                echo "Mirror has no table-of-contents/toc.json yet"
+                TOC=true
+              fi
+            fi
+          fi
+          echo "toc=$TOC" >> "$GITHUB_OUTPUT"
+          echo "TOC sync: $TOC"
+
+      # Whether this run pushes anything to the mirror: MDX for detected
+      # content paths, the TOC, or both.
+      - name: Decide whether to push
+        id: plan
+        env:
+          COUNT: ${{ steps.detect.outputs.count }}
+          TOC: ${{ steps.toc.outputs.toc }}
+        run: |
+          set -euo pipefail
+          if [ "$COUNT" != "0" ] || [ "$TOC" = "true" ]; then
+            echo "push=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "push=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install converter
         if: steps.detect.outputs.count != '0'
         working-directory: platform
@@ -233,8 +291,21 @@ jobs:
           done < "$RUNNER_TEMP/paths.txt"
           du -sh content-mdx
 
+      # Same build the site runs (build-toc.sh, the SSG extension's onPreBuild).
+      # It runs before anything touches the target, so a failure pushes nothing
+      # and leaves the watermark in place for the next run to retry.
+      - name: Build TOC
+        if: steps.toc.outputs.toc == 'true'
+        working-directory: content/table-of-contents
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile
+          pnpm build
+          test -s output/toc.json
+          ls -l output/toc.json
+
       - name: Clone target
-        if: steps.detect.outputs.count != '0' && inputs.dry_run != true
+        if: steps.plan.outputs.push == 'true' && inputs.dry_run != true
         env:
           TOKEN: ${{ steps.token.outputs.token }}
         run: |
@@ -253,7 +324,7 @@ jobs:
           fi
 
       - name: Ensure target scaffolding
-        if: steps.detect.outputs.count != '0' && inputs.dry_run != true
+        if: steps.plan.outputs.push == 'true' && inputs.dry_run != true
         run: |
           set -euo pipefail
           cd "$RUNNER_TEMP/target"
@@ -264,13 +335,18 @@ jobs:
           English MDX content, generated from
           [10gen/docs-mongodb-internal](https://github.com/10gen/docs-mongodb-internal).
 
-          **Do not edit `content-mdx/` by hand.** It is overwritten on every sync.
-          Make changes in the source repository; the mirror follows `main`.
+          **Do not edit `content-mdx/` or `table-of-contents/` by hand.** They
+          are overwritten on every sync. Make changes in the source repository;
+          the mirror follows `main`.
+
+          `table-of-contents/toc.json` is the unified table of contents, built
+          from `content/table-of-contents/` in the source repository.
 
           See `sync-manifest.json` for the source commit each sync was generated from.
           EOF
           cat > .gitattributes <<'EOF'
           content-mdx/** linguist-generated=true
+          table-of-contents/** linguist-generated=true
           sync-manifest.json linguist-generated=true
           EOF
 
@@ -319,6 +395,13 @@ jobs:
             fi
           done
 
+      - name: Sync TOC
+        if: steps.toc.outputs.toc == 'true' && inputs.dry_run != true
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/target/table-of-contents"
+          cp content/table-of-contents/output/toc.json "$RUNNER_TEMP/target/table-of-contents/toc.json"
+
       # sourceCommit is the tip of origin/main this run generated from, not
       # github.sha: the tree was reset to origin/main before generation, so the
       # triggering commit may be behind what was actually synced. Using it as
@@ -327,17 +410,19 @@ jobs:
       # asked for, so it must not advance the last-synced watermark -- the next
       # normal run then re-covers that range, which is wasteful but never wrong.
       - name: Write sync manifest
-        if: steps.detect.outputs.count != '0' && inputs.dry_run != true && !inputs.paths
+        if: steps.plan.outputs.push == 'true' && inputs.dry_run != true && !inputs.paths
         run: |
           set -euo pipefail
-          PATHS_JSON=$(grep . "$RUNNER_TEMP/paths.txt" | sed 's/.*/"&"/' | paste -sd, -)
+          # A TOC-only run has no content paths, and grep exits 1 on no match.
+          PATHS_JSON=$({ grep . "$RUNNER_TEMP/paths.txt" || true; } | sed 's/.*/"&"/' | paste -sd, -)
           cat > "$RUNNER_TEMP/target/sync-manifest.json" <<EOF
           {
             "sourceRepository": "${{ github.repository }}",
             "sourceCommit": "$(git rev-parse origin/main)",
             "sourceCommitDate": "$(git show -s --format=%cI HEAD)",
             "generatedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "contentPaths": [${PATHS_JSON}]
+            "contentPaths": [${PATHS_JSON}],
+            "tableOfContents": ${{ steps.toc.outputs.toc }}
           }
           EOF
           cat "$RUNNER_TEMP/target/sync-manifest.json"
@@ -345,9 +430,10 @@ jobs:
       # `mode: full` commits one project at a time so the backfill never
       # approaches the per-push size limit.
       - name: Commit and push
-        if: steps.detect.outputs.count != '0' && inputs.dry_run != true
+        if: steps.plan.outputs.push == 'true' && inputs.dry_run != true
         env:
           MODE: ${{ steps.mode.outputs.mode }}
+          COUNT: ${{ steps.detect.outputs.count }}
         run: |
           set -euo pipefail
           cd "$RUNNER_TEMP/target"
@@ -393,6 +479,13 @@ jobs:
               git commit -m "Sync ${p} from ${REPO}@${SHORT_SHA} [skip ci]"
               push_with_retry
             done < "$RUNNER_TEMP/paths.txt"
+            if [ -d table-of-contents ]; then
+              git add -A table-of-contents
+              if ! git diff --cached --quiet; then
+                git commit -m "Sync table-of-contents from ${REPO}@${SHORT_SHA} [skip ci]"
+                push_with_retry
+              fi
+            fi
             # Pruning removes directories that are not in paths.txt, so the
             # per-project loop above cannot stage them. Sweep up the rest.
             git add -A
@@ -406,7 +499,11 @@ jobs:
               echo "Mirror already up to date"
               exit 0
             fi
-            git commit -m "Sync content-mdx from ${REPO}@${SHORT_SHA} [skip ci]"
+            if [ "$COUNT" = "0" ]; then
+              git commit -m "Sync table-of-contents from ${REPO}@${SHORT_SHA} [skip ci]"
+            else
+              git commit -m "Sync content-mdx from ${REPO}@${SHORT_SHA} [skip ci]"
+            fi
             push_with_retry
           fi
 
@@ -419,6 +516,7 @@ jobs:
             echo "- Mode: \`${{ steps.mode.outputs.mode }}\`"
             echo "- Dry run: \`${{ inputs.dry_run }}\`"
             echo "- Content paths: \`${{ steps.detect.outputs.count }}\`"
+            echo "- TOC: \`${{ steps.toc.outputs.toc }}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
   test:

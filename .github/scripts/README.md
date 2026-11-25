@@ -38,6 +38,18 @@ A run with `-f paths=...` regenerates only the named paths and deliberately
 does not update `sync-manifest.json`, so it never advances that marker. The
 next normal run therefore re-covers that range.
 
+### Table of contents
+
+The sync also builds the unified TOC (`pnpm build` in
+`content/table-of-contents/`) and writes it to `table-of-contents/toc.json`
+in the target repo. It does this when files under `content/table-of-contents/`
+changed since the last sync, on `mode: full` runs, and whenever the target has
+no `toc.json` yet, so the first run after this lands backfills it without a
+full sync. TOC-only merges push too: they write `sync-manifest.json` with an
+empty `contentPaths` and `"tableOfContents": true`. A run with `-f paths=...`
+never touches the TOC. If the TOC build fails, the run fails before anything is
+pushed, and the next run retries it from the same watermark.
+
 ### Credentials
 
 The sync mints its token from the `mongodb-server-docs-sync-bot` GitHub App
