@@ -1,3 +1,19 @@
+.. _atlas-sp-20261119:
+
+19 November 2026 Release
+------------------------
+
+- Adds asynchronous endpoint creation and additional endpoint details
+  to the {+atlas-sp+} endpoint page in the {+atlas-ui+}.
+- Improves load performance of the {+atlas-sp+} page in the
+  {+atlas-ui+}.
+- Adds sorting and filtering to the workspace page in the
+  {+atlas-ui+}. You can sort by date created and filter by status,
+  errors, region, and provider.
+- Adds a button to view monitoring from the stream processor page in
+  the {+atlas-ui+}.
+
+.. _atlas-sp-20261104:
 .. _atlas-sp-20261112:
 
 12 November 2026 Release
