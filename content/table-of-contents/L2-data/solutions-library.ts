@@ -499,6 +499,11 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/retail-agentic-commerce',
           },
+          {
+            label: 'Memory Data Layer For Multi Agent Retail Advisor',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/retail-multi-agent-advisor',
+          },
         ],
       },
       {

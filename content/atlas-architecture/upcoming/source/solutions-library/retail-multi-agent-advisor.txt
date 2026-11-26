@@ -1,0 +1,604 @@
+.. _arch-center-is-multi-agent-advisor:
+
+================================================
+Memory Data Layer for Multi-Agent Retail Advisor
+================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Build a multi-agent retail advisor on MongoDB Atlas. Unify product discovery, customer profiles, session history, and learned preferences in one data plane.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Build a retail advisor that uses MongoDB Atlas for product discovery,
+customer context, and memory across cooperating agents.
+
+**Use cases:** `Artificial Intelligence
+<https://www.mongodb.com/solutions/use-cases/artificial-intelligence>`__,
+`Personalization
+<https://www.mongodb.com/solutions/use-cases/personalization>`__
+
+**Industries:** `Retail
+<https://www.mongodb.com/solutions/industries/retail>`__
+
+**Products and tools:** `MongoDB Search
+<https://www.mongodb.com/products/platform/atlas-search>`__, `Vector
+Search
+<https://www.mongodb.com/products/platform/atlas-vector-search>`__,
+`Voyage AI
+<https://www.mongodb.com/products/platform/ai-search-and-retrieval>`__
+
+**Partners:** `Anthropic
+<https://cloud.mongodb.com/ecosystem/anthropic>`__, `Google Cloud
+<https://cloud.mongodb.com/ecosystem/google-cloud>`__
+
+Solution Overview
+-----------------
+
+Building AI agents appears straightforward with modern large language
+models (LLMs) and orchestration frameworks, but production agent systems
+often fail because of complex data management. Teams frequently stitch
+together separate databases for vector search, session history, memory,
+and audit logging. This fragmented database architecture increases
+latency, operational costs, and maintenance complexity.
+
+In the retail industry, customers demand continuous, personalized
+interactions with distinct requirements:
+
+- Carol searches for road-marathon shoes in a size 8 with maximum
+  cushioning.
+
+- John searches for trail-running shoes in a size 11 with waterproof
+  material and minimal cushioning.
+
+To support these scenarios, your system must retain short-term session
+history, customer preferences, and long-term memory across all channels.
+Siloed backend data systems prevent retailers from building a unified
+architecture that stores and shares the context needed to power
+production ready AI assistants.
+
+MongoDB Atlas replaces fragmented datastores with a single, unified
+database platform that serves as your agentic data plane.
+
+Deploy MongoDB Atlas to handle all five data needs of agentic AI
+natively:
+
+- **Knowledge**: Store product catalogs and vector embeddings together.
+
+- **User Context**: Maintain flexible customer profiles.
+
+- **Session History**: Retain conversation context across turns.
+
+- **Long-Term Memory**: Learn and update customer preferences over time.
+
+- **Observability**: Record tool execution paths and latencies.
+
+The Multi Agent Retail Advisor (MARA) is a solution that demonstrates
+this unified data plane. MARA helps customers find the products that
+best fit their specific needs.
+
+.. figure:: /includes/images/industry-solutions/retail-multi-agent-advisor1.svg
+   :figwidth: 1200px
+   :alt: Overview of MARA system user interface
+   :lightbox:
+
+   Figure 1. Overview of MARA system user interface
+
+The solution combines three key architectural pillars:
+
+- `Google Agent Development Kit (ADK)
+  <https://docs.cloud.google.com/gemini-enterprise-agent-platform/build/adk>`__:
+  Orchestrates multi-agent workflows and manages agent interactions.
+
+- `Agent-to-Agent (A2A) protocol
+  <https://a2a-protocol.org/latest/topics/what-is-a2a/>`__: Standardizes
+  network-based communication and dynamic discovery across agent
+  boundaries.
+
+- MongoDB Atlas agentic data plane: Consolidates knowledge, user
+  context, session history, memory, and observability into a single
+  platform.
+
+Reference Architectures
+-----------------------
+
+MARA’s agents communicate over the A2A protocol and use MongoDB Atlas as
+a shared data layer for product discovery, customer memory, and
+traceability.
+
+.. figure:: /includes/images/industry-solutions/retail-multi-agent-advisor2.svg
+   :figwidth: 1200px
+   :alt: MARA reference architecture
+   :lightbox:
+
+   Figure 2. MARA reference architecture
+
+Product Knowledge and Asymmetric Retrieval
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB Atlas holds MARA’s product catalog and powers product discovery.
+Each product document contains a ``search_text`` field with searchable
+catalog details. Atlas automatically generates vector embeddings for
+this text using `voyage-4-large
+<https://www.mongodb.com/docs/voyageai/models>`__. When a customer
+submits a query, the application embeds the request with the lighter
+`voyage-4-lite <https://www.mongodb.com/docs/voyageai/models>`__ model.
+Because Voyage 4 models share an embedding space, queries embedded by
+the lightweight model can directly search representations generated by
+the larger index model. This *asymmetric retrieval* approach combines
+high-quality indexed data with lower query-embedding cost and latency,
+balancing accuracy and compute efficiency.
+
+The Product agent searches ``products`` with vector search and
+structured catalog filters. When native reranking is enabled, it
+reorders candidates before returning matches. Otherwise, the agent
+returns the vector search results directly.
+
+Agent Collaboration and Memory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Planner agent coordinates product recommendations. Through
+`Agent-to-Agent (A2A) <https://a2a-protocol.org/latest/>`__ connections,
+it queries the Profile agent for customer context and the Product agent
+for matching catalog items. The Profile agent reads attributes from
+``users`` and retrieves saved preferences from ``user_memory``. When the
+interaction reveals a durable preference, the Profile agent can save it
+to ``user_memory``. The Planner agent brings the specialists’ results
+together in its recommendation. `ADK <https://adk.dev>`__ supports the
+agent workflow; MongoDB Atlas supplies the data beneath it.
+
+The memory labels describe different roles for that data.
+
+- ``sessions``: Records conversation messages.
+
+- ``agent_state``: Records workflow status, the interaction’s short-term
+  record.
+
+- ``user_memory``: Holds learned facts that persist beyond one
+  conversation.
+
+- "Shared memory": Refers to the common Atlas context layer accessed by
+  agents based on their roles, rather than a separate database
+  collection.
+
+Traceability
+~~~~~~~~~~~~
+
+A session identifier tracks all agent calls. Specialist tools record
+their agent names, tool names, inputs, outputs, and execution times to
+``tool_invocations`` under that identifier. Combined with the session
+and workflow records, these traces make the observable sequence of an
+interaction reconstructible and comparable across runs. They support
+investigations of recommendations or failures, but they do not capture
+every internal model decision or guarantee identical wording across
+repeated requests.
+
+Data Model Approach
+-------------------
+
+Stitching together separate databases for vector search, session state,
+and logging increases cost. MongoDB Atlas consolidates all agent data
+into six dedicated collections.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Collection
+     - Purpose
+
+   * - products
+     - Stores catalog items with automated vector embeddings.
+
+   * - users
+     - Maintains static customer preferences, favorite brands, and
+       sizes.
+
+   * - user_memory
+     - Keeps persistent, learned preferences that accumulate across
+       conversations.
+
+   * - sessions
+     - Holds chronological chat interaction history per customer
+       conversation.
+
+   * - agent_state
+     - Tracks the active execution phase of each agent workflow.
+
+   * - tool_invocations
+     - Logs inputs, outputs, and execution latencies for debugging.
+
+Why AI Thrives with the Document Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Modern AI requires managing the entire lifecycle of evolving context,
+such as data, memory, embeddings, retrieval, and real-time application
+state, in one flexible model.
+
+The flexible document model **handles evolving schemas without
+redesigning tables or coordinating disruptive migrations**. Embedding
+related data, such as a customer profile, interaction history,
+preferences, and permissions, keeps frequently accessed context in one
+document. This reduces joins, simplifies queries, and improves response
+latency.
+
+**AI data is naturally document-shaped**. Conversation history, agent
+memory, tool calls, metadata, and retrieved context are naturally
+represented as nested JSON-like structures. MongoDB documents map
+closely to application objects, reducing translation and
+Object-Relational Mapping (ORM) overhead.
+
+Evolving Memories for Personalized Context
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``users`` collection stores static customer attributes, such as shoe
+sizes and brand preferences. Because customer attributes are stored
+together in one document, the Profile agent retrieves a complete
+preference profile with a single, high-speed read query. This avoids the
+latency overhead of multi-table joins.
+
+.. code-block:: JSON
+
+   {
+     "name": "Carol Kim",
+     "email": "carol@example.com",
+     "preferences": {
+       "brands": [
+         "Patagonia",
+         "Darn Tough",
+         "Arc'teryx"
+       ],
+       "price_range": {
+         "min": 50,
+         "max": 350
+       },
+       "categories": [
+         "rain_jackets",
+         "base_layers",
+         "accessories"
+       ],
+       "sizes": {
+         "shoes": "8",
+         "clothing": "S"
+       }
+     },
+     "profile": {
+       "experience": "advanced",
+       "activities": [
+         "mountaineering",
+         "backpacking",
+         "trail running"
+       ],
+       "location": "Vermont"
+     }
+   }
+
+The ``user_memory`` collection stores dynamic, learned facts that agents
+extract during conversations.
+
+.. code-block:: JSON
+
+   {
+     "user_id": "user003",
+     "facts": [
+       "Prefers polyester base layers because they dry faster than cotton or other materials"
+     ],
+     "updated_at": "2026-08-12T23:08:44.886000"
+   }
+
+The ``user.preferences.shoe_size`` field filters product catalog
+searches directly. The fact text field captures evolving insights, such
+as material preferences.
+
+Static schemas and unstructured dynamic memories are stored in flexible
+JSON. The Profile agent queries both collections to assemble a complete
+customer state.
+
+Maintaining Conversational Continuity with Nested Sessions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``sessions`` collection holds conversational history per customer
+conversation. Each document retains a chronologically ordered array of
+message objects.
+
+.. code-block:: JSON
+
+   {
+     "session_id": "6415c1c1-bbf5-4986-818c-f390c489cab5",
+     "user_id": "user003",
+     "messages": [
+       {
+         "role": "user",
+         "content": "What base layers work best for mountaineering in cold, wet conditions?",
+         "timestamp": "2026-08-12T23:03:22.654000"
+       },
+       {
+         "role": "assistant",
+         "content": "Hi Carol! Great to hear from you.\n\nBased on your preferences and mountaineering needs, here are my top recommendations:\n\n## **1. Icebreaker Merino 260 Tech Long Sleeve Crewe** — $129\n…",
+         "timestamp": "2026-08-12T23:03:57.044000"
+       },
+       {
+         "role": "user",
+         "content": "i like base layers to be Polyester because they dry faster than cotton or other materials",
+         "timestamp": "2026-08-12T23:08:33.023000"
+       },
+       {
+         "role": "assistant",
+         "content": "Hi Carol! I've saved your preference for polyester base layers.\n\nBased on what you're looking for, here are my top recommendations:\n\n**1. Arc'teryx Phase SL Crew Long Sleeve - $89*...",
+         "timestamp": "2026-08-12T23:09:09.013000"
+       }
+     ],
+     "created_at": "2026-08-12T23:03:22.635000",
+     "updated_at": "2026-08-12T23:09:09.013000"
+   }
+
+The messages array captures roles and text content per turn.
+
+Relational databases require a secondary messages table and slow sort
+queries to rebuild threads. Storing chat history as a nested array
+inside a single document guarantees order. This enables the Planner
+agent to fetch the entire chronological session history with a single
+read path.
+
+Enabling Smart Search by Unifying Operational and AI Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``products`` collection integrates transactional fields with vector
+embedding arrays.
+
+.. code-block:: JSON
+
+   {
+     "name": "Patagonia Torrentshell 3L Jacket",
+     "brand": "Patagonia",
+     "category": "rain_jackets",
+     "description": "The Torrentshell 3L is Patagonia's workhorse waterproof jacket built with H2No Performance Standard 3-layer shell. Fully seam-sealed and Fair Trade Certified, it packs into its own chest pocket. Ideal for unpredictable weather on trail or in town.",
+     "price": 149,
+     "size_options": ["XS",...],
+     "attributes": {
+       "waterproof": true,
+       "eco_friendly": true,
+       "insulated": false,
+       "gender": "unisex"
+     },
+     "colors": ["black"...],
+     "rating": 4.7,
+     "reviews_count": 2841,
+     "search_text": "Patagonia Torrentshell 3L Jacket. Patagonia. Category: rain_jackets. The Torrentshell 3L is Patagonia's workhorse waterproof jacket built with H2No Performance Standard 3-layer shell. Fully seam-sealed and Fair Trade Certified, it packs into its own chest pocket. Ideal for unpredictable weather on trail or in town."
+   }
+
+The ``price`` and ``productId`` fields handle standard retail
+transaction lookups. The ``search_text`` field combines the product
+name, brand, category, and raw description into a single string. The
+Atlas Vector Search index then targets this concatenated string using an
+automatic embedding configuration.
+
+**You do not need to store or manage vector arrays inside your
+documents**. The Auto-Embedding feature automatically vectorizes the
+``search_text`` field in the background.
+
+Because Voyage AI models share the same embedding space, you can
+pre-embed the catalog with ``voyage-4-large``. You can then run user
+queries with low-latency ``voyage-4-lite``. This asymmetric approach
+speeds up search and reduces execution costs.
+
+Auditing Agentic Operations with Flexible Tool Traces
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``tool_invocations`` collection records every tool call and
+execution detail.
+
+.. code-block:: JSON
+
+   [
+     {
+       "session_id": "6415c1c1-bbf5-4986-818c-f390c489cab5",
+       "agent_name": "ProfileAgent",
+       "tool_name": "get_user_profile",
+       "input": {
+         "user_id": "user003"
+       },
+       "output": {
+         "name": "Carol Kim",
+         "email": "carol@example.com",
+         "preferences": {
+           "brands": [
+             "Patagonia",
+             "Darn Tough",
+             "Arc'teryx"
+           ],
+           "price_range": {
+             "min": 50,
+             "max": 350
+           },
+           "categories": [
+             "rain_jackets",
+             "base_layers",
+             "accessories"
+           ],
+           "sizes": {
+             "shoes": "8",
+             "clothing": "S"
+           }
+         },
+         "profile": {
+           "experience": "advanced",
+           "activities": [
+             "mountaineering",
+             "backpacking",
+             "trail running"
+           ],
+           "location": "Vermont"
+         }
+       },
+       "latency_ms": 15,
+       "timestamp": "2026-08-12T23:08:36.663000"
+     },
+     {
+       "session_id": "6415c1c1-bbf5-4986-818c-f390c489cab5",
+       "agent_name": "ProfileAgent",
+       "tool_name": "get_user_memory",
+       "input": {
+         "user_id": "user003"
+       },
+       "output": {
+         "user_id": "user003",
+         "facts": ["prefers polyester material over cotton"],
+         "note": "No memory stored for this user yet"
+       },
+       "latency_ms": 15,
+       "timestamp": "2026-08-12T23:08:36.698000"
+     },
+     {
+       "session_id": "6415c1c1-bbf5-4986-818c-f390c489cab5",
+       "agent_name": "ProfileAgent",
+       "tool_name": "update_user_memory",
+       "input": {
+         "user_id": "user003",
+         "new_facts": [
+           "Prefers polyester base layers because they dry faster than cotton or other materials"
+         ]
+       },
+       "output": {
+         "status": "ok",
+         "user_id": "user003",
+         "facts_added": 1
+       },
+       "latency_ms": 21,
+       "timestamp": "2026-08-12T23:08:44.907000"
+     },
+     {
+       "session_id": "6415c1c1-bbf5-4986-818c-f390c489cab5",
+       "agent_name": "ProductAgent",
+       "tool_name": "search_products",
+       "input": {
+         "query": "Base layers Patagonia Arc'teryx mountaineering backpacking trail running advanced performance",
+         "max_price": 350,
+         "size": "S",
+         "waterproof": null,
+         "eco_friendly": null,
+         "category": "base_layers"
+       },
+       "output": [
+         {
+           "name": "Patagonia Capilene Cool Daily Long Sleeve Shirt",
+           "brand": "Patagonia",
+           "category": "base_layers",
+           "description": "The Capilene Cool Daily is made from recycled polyester …",
+           "price": 65.0,
+           "size_options": [ "XS", "S"],
+           "attributes": {
+             "waterproof": false,
+             "eco_friendly": true,
+             "insulated": false,
+             "gender": "unisex"
+           },
+           "colors": [ "black", "light bog green"],
+           "rating": 4.5,
+           "reviews_count": 2543,
+           "vectorScore": 0.7558120489120483
+         },
+         …
+       ],
+       "latency_ms": 193,
+       "timestamp": "2026-08-12T23:08:45.707000"
+     }
+   ]
+
+Build the Solution
+------------------
+
+Use the `MARA repository
+<https://github.com/mongodb-industry-solutions/multi-agent-retail-advisor-with-memory>`__
+to explore the solution. The `setup guide
+<https://github.com/mongodb-industry-solutions/multi-agent-retail-advisor-with-memory/blob/main/docs/SETUP.md>`__
+provides the detailed configurations and commands for the following
+phases:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure Atlas and the model endpoint
+
+      Use an Atlas M10-or-higher cluster for automated embeddings.
+      Configure the Atlas connection and LLM endpoint in
+      ``backend/.env`` by following the setup guide. Native reranking is
+      optional and requires the MongoDB version and preview setting
+      specified in the guide.
+
+   .. step:: Seed the catalog and search indexes
+
+      Run the repository’s seed procedure to load sample users and 135
+      outdoor products, and to create the vector and text search
+      indexes. Atlas embeds the product ``search_text`` field in the
+      background. Wait for indexing to complete before evaluating
+      semantic product retrieval.
+
+   .. step:: Start the application and agents
+
+      Start the Docker Compose stack to run the frontend, REST
+      orchestrator, and separate Planner, Profile, and Product agent
+      services. Each agent service publishes an A2A AgentCard for
+      discovery and communication.
+
+   .. step:: Verify search, memory, and traces
+
+      Request a product recommendation in the chat interface, then
+      inspect the Agents, Trace, and MongoDB views. State a durable
+      preference and start another conversation as the same sample user
+      to check that the Profile agent retrieves the saved fact from
+      ``user_memory``. Inspect the session-linked tool records to see
+      which specialists ran. This verifies learned-preference
+      persistence, not automatic replay of the complete chat history to
+      the Planner.
+
+Key Learnings
+-------------
+
+- **Unify agent data**: Retain the product catalog, customer profiles,
+  learned preferences, session records, and tool traces in MongoDB
+  Atlas.
+
+- **Balance retrieval quality and query cost**: Configure Atlas to embed
+  catalog text with ``voyage-4-large`` and use the compatible
+  ``voyage-4-lite`` model for live customer queries. Evaluate retrieval
+  quality for the application rather than assuming identical results.
+
+- **Separate agent responsibilities**: Use the Planner agent to
+  coordinate the Profile and Product agents over A2A, while each
+  specialist accesses the Atlas data relevant to its role.
+
+- **Persist learned preferences**: Save durable customer facts in
+  ``user_memory`` so the Profile agent can retrieve them in later
+  conversations. Stored session messages are not automatically replayed
+  to the Planner agent.
+
+- **Trace observable agent activity**: Connect workflow state and tool
+  records by session ID to investigate recommendations and failures
+  without claiming to capture every internal model decision.
+
+Authors
+-------
+
+- Alberto Camarena, MongoDB
+- Angie Guemes, MongoDB
+- Rodrigo Leal, MongoDB
+- Ronan Conlon, MongoDB
+- Daniel Jamir, MongoDB
+
+Learn More
+----------
+
+- `MongoDB for Retail Innovation
+  <https://www.mongodb.com/solutions/industries/retail>`__
+
+- `The $5 Trillion Shift: Preparing Retail Backends for the Age of AI
+  Agents
+  <https://www.mongodb.com/company/blog/innovation/5-trillion-shift-preparing-retail-backends-for-age-of-ai-agents>`__
