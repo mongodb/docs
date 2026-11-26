@@ -31,10 +31,15 @@ grows.
 <https://www.mongodb.com/products/platform/atlas-database>`__, `MongoDB
 Search <https://www.mongodb.com/products/platform/atlas-search>`__,
 `MongoDB Time Series
-<https://www.mongodb.com/products/capabilities/time-series>`__
+<https://www.mongodb.com/products/capabilities/time-series>`__, `MongoDB
+Vector Search
+<https://www.mongodb.com/products/platform/atlas-vector-search>`__,
+`Voyage AI by MongoDB
+<https://www.mongodb.com/products/platform/ai-search-and-retrieval>`__
 
 **Partners:** `Vercel <https://cloud.mongodb.com/ecosystem/vercel>`__,
-`Apollo GraphQL <https://cloud.mongodb.com/ecosystem/apollographql>`__
+`Apollo GraphQL <https://cloud.mongodb.com/ecosystem/apollographql>`__,
+`LangChain <https://cloud.mongodb.com/ecosystem/langchain>`__
 
 Solution Overview
 -----------------
@@ -59,6 +64,11 @@ across driver-facing and operational experiences becomes increasingly
 important for delivering reliable services and making informed
 decisions.
 
+Drivers expect accurate answers before they choose a charger. Operators
+need to detect faults and act before drivers notice them. When this data
+lives in separate systems, both groups wait, and AI agents lack the
+context to help.
+
 This solution demonstrates how a unified operational data layer can
 bring these workloads together in MongoDB. A shared data foundation
 supports real-time charging experiences and provides operators with a
@@ -70,13 +80,22 @@ Within a single application architecture, the solution manages:
 
 - Charging reservations and active sessions.
 
-- Operational events and telemetry.
+- Incidents, operational events, and telemetry.
+
+- Assistant and AI Agent memory and searchable documentation
 
 The approach uses the MongoDB document model to organize data around
 application access patterns, while geospatial queries support
 location-aware discovery, conditional updates help maintain accurate
 availability, and change streams connect operational state changes with
-downstream processing. Consolidating operational data into one flexible
+downstream processing. 
+
+AI agents work on the same data that the application uses and adapt to
+who is asking. For drivers, they answer questions about past sessions.
+For operators, they summarize and review incidents by combining
+telemetry, incident history, and equipment manuals. 
+
+Consolidating operational data into one flexible
 platform allows your team to build connected charging applications that
 adapt as networks, data requirements, and operational needs grow.
 
@@ -94,7 +113,7 @@ The solution brings driver experiences, charging operations, station
 simulation, and operational data together through a unified app
 architecture.
 
-.. figure:: /includes/images/industry-solutions/connected-ev-charging2.svg
+.. figure:: /includes/images/industry-solutions/connected-ev-charging2.2.svg
    :figwidth: 1200px
    :alt: EV charging demo architecture
    :lightbox:
@@ -117,15 +136,23 @@ services through OpenStreetMap to support station discovery and
 location-aware experiences.
 
 A Python FastAPI simulator represents charging-station activity and
-generates session telemetry. :ref:`MongoDB change streams
-<changeStreams>` capture state changes in the charging session for the
-CSMS-to-simulator workflow. The simulator uses these events to:
+generates session telemetry. The simulator communicates with the CSMS
+through the `Open Charge Point Protocol
+<https://openchargealliance.org/>`__ (OCPP) version 2.1. At startup, it
+sends a boot notification to simulate a new online station. During
+charging, the simulator tracks status changes and broadcasts telemetry
+using transaction events. The CSMS stores these records in MongoDB so
+the application and AI agents can access them immediately.
 
-- Start or stop processing a charging session.
+An AI agent queries this operational data layer directly to perform the following tasks:  
 
-- Calculate the simulated charging state.
+- Solve real-time user reports
+- Process live station information
+- Analyze telemetry logs
+- Retrieve historical session context
 
-- Generate session telemetry.
+The agent also answers complex questions for drivers and operators
+instantly.
 
 MongoDB provides the unified operational data platform across the
 architecture. It integrates all data required for the end-to-end
@@ -161,6 +188,15 @@ The solution uses the following core collections:
 - ``incidents``: Track operational issues.
 
 - ``telemetry``: Store high-volume charging data.
+
+- ``manualChunks``: Stores charging point documentation enriched with
+  vector embeddings.
+
+- ``agent_checkpoints``: Stores snapshots of each conversation's state,
+  serving as the agent's memory.
+
+- ``agent_checkpoint_writes``: Stores the intermediate steps the agent
+  records for each checkpoint.
 
 The document model makes the solution intuitive and easier to implement.
 
@@ -261,6 +297,73 @@ separate archival workflows.
      "temperatureC": 31.2
    }
 
+The AI agent works on the same collections as the application, so its
+answers reflect the live state of the network. Several additions make
+the model AI-ready.
+
+The ``manualChunks`` collection stores each manual section with its
+heading, error codes, and a vector embedding in one document. A `MongoDB
+Vector Search
+<https://www.mongodb.com/products/platform/atlas-vector-search>`__
+index filters on error codes and products. A MongoDB Search index on the
+same collection matches exact codes and terms.
+
+.. code-block:: JSON
+
+   {
+     "section": "7.3 Overtemperature protection",
+     "heading": "Connector overheating",
+     "codes": ["E-05"],
+     "product": "ArcPort Home 22",
+     "revision": 10,
+     "text": "If the connector temperature exceeds…",
+     "embeddingModel": "voyage-3.5",
+     "embedding": [0.0213, -0.0187, …]
+   }
+
+When the AI agent reviews an incident, it writes its decision to the
+incident document. The decision includes the likely cause, recommended
+fix, disposition, confidence level, and the manual sections and tools
+that the agent used. Operators see the full reasoning in the incident
+view, and every decision stays auditable.
+
+.. code-block:: JSON
+
+   {
+     "type": "USER_REPORT",
+     "severity": "MEDIUM",
+     "status": "OPEN",
+     "stationId": "69a41eb930650a07a2823f77",
+     "chargingPointId": "69a41eb930650a07a2823f79",
+     "sessionId": "6adfbda1a82216749151a7fd",
+     "detection": { "source": "USER" },
+     "description": "Multiple tries to start charging",
+     "createdAt": "2026-10-26T20:53:14.086Z",
+     "resolution": {
+       "resolvedAt": null,
+       "review": {
+         "reviewedAt": "2026-10-26T20:53:29.591Z",
+         "summary": "User reported",
+         "likelyCause": "Mechanical connector",
+         "disposition": "MAINTENANCE_SCHEDULED",
+         "scheduledFor": "2026-10-28T09:00:00.000Z",
+         "nextStep": "Schedule maintenance",
+         "confidence": "medium",
+         "estimatedRepairTime": "1 day",
+         "toolsUsed": [
+           { "tool": "getSelectedChargerDetails" },
+           { "tool": "summarizeStationIncidents" },
+           { "tool": "skimTelemetry" },
+           { "tool": "searchManuals" }
+         ]
+       }
+     }
+   }
+
+The AI agent stores each conversation as checkpoints in MongoDB. A TTL
+index removes inactive threads after seven days. Follow-up questions
+keep their context without a separate memory service.
+
 These patterns keep the implementation focused on the application's
 actual workflows while enabling each data type to scale and evolve
 independently. The result is a practical document model that reduces app
@@ -319,16 +422,19 @@ Key Learnings
   responsive charging experiences as infrastructure and data volumes
   grow.
 
-- **Extend operations with AI**: Use connected station, session,
-  incident, and telemetry context as a foundation for AI-assisted
-  support and operational decision workflows.
-
+- **Ground AI agents in live operational data**: The AI assistant
+  queries MongoDB through tools instead of data copies and stores
+  embeddings and conversation memory in the same platform. Answers
+  reflect the current state of the network without a separate vector
+  database or synchronization pipeline.
+ 
 Authors
 -------
 
 - Rami Pinto, MongoDB
 - Humza Akhtar, MongoDB
 - Daniel Jamir, MongoDB
+- Kirill Makienko, MongoDB
 
 Learn More
 ----------
