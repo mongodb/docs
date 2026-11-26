@@ -709,6 +709,11 @@ AtlasThirdPartyIntegrationStatus holds the status of an integration
      - ``ID`` of the third party integration resource in Atlas
      - false
 
+   * -  ``observedGeneration``
+     - integer
+     - *Format*: int64
+     - false
+
 .. _atlasthirdpartyintegration-status-conditions: 
 
 AtlasThirdPartyIntegration.status.conditions

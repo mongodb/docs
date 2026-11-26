@@ -293,6 +293,11 @@ The entry fields of the cluster resource spec. These fields can be set for creat
      - Root Certificate Authority that ``MongoDB`` Atlas cluster uses. ``MongoDB`` Cloud supports Internet Security Research Group.
      - false
 
+   * -  ``searchAutoMigration``
+     - object
+     - Configuration for automatically adding Dedicated Search Nodes on eligible Atlas Infinite clusters. This setting has no effect on Atlas Core clusters.
+     - false
+
    * -  ``tags``
      - []object
      - List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
@@ -341,7 +346,7 @@ Group of settings that configures a subset of the advanced configuration details
 
    * -  ``minimumEnabledTlsProtocol``
      - string
-     - Minimum Transport Layer Security (``TLS``) version that the cluster accepts for incoming connections. Clusters using ``TLS`` 1.0 or 1.1 should consider setting ``TLS`` 1.2 as the minimum ``TLS`` protocol version.
+     - Minimum Transport Layer Security (``TLS``) version that the cluster accepts for incoming connections.
      - false
 
    * -  ``tlsCipherConfigMode``
@@ -985,6 +990,27 @@ The current hardware specifications for read only nodes in the region.
      - Number of nodes of the given type for ``MongoDB`` Cloud to deploy to the region.
      - false
 
+.. _cluster-spec-v20250312-entry-searchautomigration: 
+
+Cluster.spec.v20250312.entry.searchAutoMigration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Configuration for automatically adding Dedicated Search Nodes on eligible Atlas Infinite clusters. This setting has no effect on Atlas Core clusters.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``disabled``
+     - boolean
+     - Flag that disables future automatic Search Node provisioning. Defaults to false on creation. Omission on update preserves the stored choice. Disabling retains existing Search Nodes and allows in-flight migrations to continue. Enabling does not bypass resource policies; if indexes exceed the migration threshold, the next eligible evaluation may start provisioning.
+     - false
+
 .. _cluster-spec-v20250312-entry-tags: 
 
 Cluster.spec.v20250312.entry.tags
@@ -1230,6 +1256,11 @@ The last observed Atlas state of the cluster resource for version v20250312.
      - Flag that indicates whether the cluster retains backups.
      - false
 
+   * -  ``searchAutoMigration``
+     - object
+     - Configuration for automatically adding Dedicated Search Nodes on eligible Atlas Infinite clusters. This setting has no effect on Atlas Core clusters.
+     - false
+
    * -  ``stateName``
      - string
      - Human-readable label that indicates any current activity being taken on this cluster by the Atlas control plane. With the exception of ``CREATING`` and ``DELETING`` states, clusters should always be available and have a Primary node even when in states indicating ongoing activity.
@@ -1269,7 +1300,7 @@ Group of settings that configures a subset of the advanced configuration details
 
    * -  ``minimumEnabledTlsProtocol``
      - string
-     - Minimum Transport Layer Security (``TLS``) version that the cluster accepts for incoming connections. Clusters using ``TLS`` 1.0 or 1.1 should consider setting ``TLS`` 1.2 as the minimum ``TLS`` protocol version.
+     - Minimum Transport Layer Security (``TLS``) version that the cluster accepts for incoming connections.
      - false
 
    * -  ``tlsCipherConfigMode``
@@ -1295,12 +1326,12 @@ Collection of Uniform Resource Locators that point to the MongoDB database.
 
    * -  ``awsPrivateLink``
      - map[string]string
-     - Private endpoint-aware connection strings that use ``AWS``-hosted clusters with Amazon Web Services (``AWS``) ``PrivateLink``. Each key identifies an Amazon Web Services (``AWS``) interface endpoint. Each value identifies the related ``mongodb://`` connection string that you use to connect to ``MongoDB`` Cloud through the interface endpoint that the key names.
+     - Private endpoint-aware connection strings that use ``AWS``-hosted clusters with Amazon Web Services (``AWS``) ``PrivateLink``. Each key identifies an Amazon Web Services (``AWS``) interface endpoint. Each value identifies the related ``mongodb://`` connection string that you use to connect to ``MongoDB`` Cloud through the interface endpoint that the key names. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
      - false
 
    * -  ``awsPrivateLinkSrv``
      - map[string]string
-     - Private endpoint-aware connection strings that use ``AWS``-hosted clusters with Amazon Web Services (``AWS``) ``PrivateLink``. Each key identifies an Amazon Web Services (``AWS``) interface endpoint. Each value identifies the related ``mongodb://`` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, ``awsPrivateLinkSrv`` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, ``awsPrivateLinkSrv`` contains the non-optimized connection string even if an optimized connection string is also present.
+     - Private endpoint-aware connection strings that use ``AWS``-hosted clusters with Amazon Web Services (``AWS``) ``PrivateLink``. Each key identifies an Amazon Web Services (``AWS``) interface endpoint. Each value identifies the related ``mongodb://`` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, ``awsPrivateLinkSrv`` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, ``awsPrivateLinkSrv`` contains the non-optimized connection string even if an optimized connection string is also present. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
      - false
 
    * -  ``private``
@@ -1310,7 +1341,7 @@ Collection of Uniform Resource Locators that point to the MongoDB database.
 
    * -  ``privateEndpoint``
      - []object
-     - List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes.
+     - List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes. This field is deprecated. Use the Private Endpoint Connection Strings resource instead.
      - false
 
    * -  ``privateSrv``
@@ -2206,4 +2237,25 @@ Cluster.status.v20250312.mongoDBEmployeeAccessGrant.links
    * -  ``rel``
      - string
      - Uniform Resource Locator (``URL``) that defines the semantic relationship between this resource and another ``API`` resource. This ``URL`` often begins with ``https://cloud.mongodb.com/api/atlas``.
+     - false
+
+.. _cluster-status-v20250312-searchautomigration: 
+
+Cluster.status.v20250312.searchAutoMigration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Configuration for automatically adding Dedicated Search Nodes on eligible Atlas Infinite clusters. This setting has no effect on Atlas Core clusters.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``disabled``
+     - boolean
+     - Flag that disables future automatic Search Node provisioning. Defaults to false on creation. Omission on update preserves the stored choice. Disabling retains existing Search Nodes and allows in-flight migrations to continue. Enabling does not bypass resource policies; if indexes exceed the migration threshold, the next eligible evaluation may start provisioning.
      - false

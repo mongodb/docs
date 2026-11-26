@@ -43,7 +43,16 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-operator',
             url: '/docs/atlas/operator/:version/migrate-parameter-to-resource',
             versions: {
-              includes: ['current', 'upcoming', 'v2.6', 'v2.7', 'v2.8', 'v2.9'],
+              includes: [
+                'current',
+                'upcoming',
+                'v2.6',
+                'v2.7',
+                'v2.8',
+                'v2.9',
+                'v2.17',
+                'v2.18',
+              ],
             },
           },
           {
@@ -133,7 +142,9 @@ const tocData: TocItem[] = [
         label: 'Dry Run',
         contentSite: 'atlas-operator',
         url: '/docs/atlas/operator/:version/ak8so-dry-run',
-        versions: { includes: ['current', 'upcoming', 'v2.8', 'v2.9'] },
+        versions: {
+          includes: ['current', 'upcoming', 'v2.8', 'v2.9', 'v2.17', 'v2.18'],
+        },
       },
       {
         label: 'Import Projects',
@@ -232,7 +243,16 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-operator',
             url: '/docs/atlas/operator/:version/atlascustomrole-custom-resource',
             versions: {
-              includes: ['current', 'upcoming', 'v2.6', 'v2.7', 'v2.8', 'v2.9'],
+              includes: [
+                'current',
+                'upcoming',
+                'v2.6',
+                'v2.7',
+                'v2.8',
+                'v2.9',
+                'v2.17',
+                'v2.18',
+              ],
             },
           },
           {
@@ -240,20 +260,46 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-operator',
             url: '/docs/atlas/operator/:version/atlasipaccesslist-custom-resource',
             versions: {
-              includes: ['current', 'upcoming', 'v2.7', 'v2.8', 'v2.9'],
+              includes: [
+                'current',
+                'upcoming',
+                'v2.7',
+                'v2.8',
+                'v2.9',
+                'v2.17',
+                'v2.18',
+              ],
             },
           },
           {
             label: 'AtlasNetworkContainer',
             contentSite: 'atlas-operator',
             url: '/docs/atlas/operator/:version/atlasnetworkcontainer-custom-resource',
-            versions: { includes: ['current', 'upcoming', 'v2.8', 'v2.9'] },
+            versions: {
+              includes: [
+                'current',
+                'upcoming',
+                'v2.8',
+                'v2.9',
+                'v2.17',
+                'v2.18',
+              ],
+            },
           },
           {
             label: 'AtlasNetworkPeering',
             contentSite: 'atlas-operator',
             url: '/docs/atlas/operator/:version/atlasnetworkpeering-custom-resource',
-            versions: { includes: ['current', 'upcoming', 'v2.8', 'v2.9'] },
+            versions: {
+              includes: [
+                'current',
+                'upcoming',
+                'v2.8',
+                'v2.9',
+                'v2.17',
+                'v2.18',
+              ],
+            },
           },
           {
             label: 'AtlasOrgSettings',
@@ -265,7 +311,16 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-operator',
             url: '/docs/atlas/operator/:version/atlasprivateendpoint-custom-resource',
             versions: {
-              includes: ['current', 'upcoming', 'v2.6', 'v2.7', 'v2.8', 'v2.9'],
+              includes: [
+                'current',
+                'upcoming',
+                'v2.6',
+                'v2.7',
+                'v2.8',
+                'v2.9',
+                'v2.17',
+                'v2.18',
+              ],
             },
           },
           {
@@ -287,7 +342,9 @@ const tocData: TocItem[] = [
             label: 'AtlasThirdPartyIntegration',
             contentSite: 'atlas-operator',
             url: '/docs/atlas/operator/:version/atlasthirdpartyintegration-custom-resource',
-            versions: { includes: ['current', 'upcoming', 'v2.9'] },
+            versions: {
+              includes: ['current', 'upcoming', 'v2.9', 'v2.17', 'v2.18'],
+            },
           },
           {
             label: 'AtlasBackupCompliance',
@@ -348,7 +405,7 @@ const tocData: TocItem[] = [
         label: 'Flex to Dedicated Migration',
         contentSite: 'atlas-operator',
         url: '/docs/atlas/operator/:version/flex-to-dedicated-migration',
-        versions: { includes: ['current', 'upcoming'] },
+        versions: { includes: ['current', 'upcoming', 'v2.17', 'v2.18'] },
       },
       {
         label: 'Production Notes',

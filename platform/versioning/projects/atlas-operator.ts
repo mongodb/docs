@@ -6,7 +6,9 @@ export default defineDocset({
 	prefix: "docs/atlas/operator",
 	versions: [
 		{ name: "upcoming", noIndexing: true },
-		{ name: "current", label: "v2.17 (current)", stable: true },
+		{ name: "current", label: "v2.19 (current)", stable: true },
+		{ name: "v2.18" },
+		{ name: "v2.17" },
 		{ name: "v2.16" },
 		{ name: "v2.15" },
 		{ name: "v2.14" },
