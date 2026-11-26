@@ -10,9 +10,11 @@
      backing databases and user credentials. |onprem| might delete 
      these files as part of the upgrade process.
 
-   As an extra precaution, you may use |mongodump| to create a binary 
+   As an extra precaution, you can use |mongodump| to create a binary 
    export of the :opsmgr:`Application Database 
-   </reference/glossary/#std-term-application-database>`. No officially 
-   supported backup method exists for the Application Database. If the 
-   upgrade fails, reach out to |mdb-support| for help fixing the 
-   issue with the {+onprem+} version.
+   </reference/glossary/#std-term-application-database>`. Starting in
+   |onprem| 8.0.24, you can back up the Application Database with a
+   secondary |onprem|. To learn more, see :ref:`back-up-ops-manager`.
+   Earlier versions of |onprem| have no official backup method for the
+   Application Database. If the upgrade fails, contact |mdb-support|
+   for help fixing the issue.
