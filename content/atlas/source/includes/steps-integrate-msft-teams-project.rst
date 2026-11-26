@@ -3,29 +3,25 @@
       
    .. step:: Create the Microsoft Teams incoming webhook.
       
-      a. Navigate to the Microsoft Teams channel where you want to add the webhook.
+      a. In Microsoft Teams, open :guilabel:`Workflows`.
       
-      #. Select :icon:`ellipsis-h` from the top navigation bar. A dropdown menu of available options displays.
+      #. Search for the :guilabel:`Send webhook alerts to a channel`
+         template. Microsoft also offers :guilabel:`Send webhook alerts
+         to a channel from specific people` and
+         :guilabel:`Send webhook alerts to a channel from people in an
+         org` templates. Each template uses a different authentication
+         type.
       
-      #. Select :guilabel:`Connectors` from the dropdown menu. A modal with available connectors displays.
+      #. Select the :guilabel:`Team` and :guilabel:`Channel` where you
+         want to receive alerts.
       
-      #. Search for :guilabel:`Incoming Webhook` and select :guilabel:`Add`. A modal with information about the :guilabel:`Incoming Webhook` connector displays.
+      #. Click :guilabel:`Save` to create the workflow.
       
-      #. Click :guilabel:`Add`.
-      
-      #. Click :guilabel:`Configure`. A modal displays.
-      
-      #. In the modal, enter a name for your webhook. Optionally, you can upload a unique image to help you identify your webhook.
-      
-      #. Click :guilabel:`Create`. 
-      
-      #. Copy the incoming webhook URL. 
+      #. On the workflow's details page, copy the webhook URL.
          
          .. important::
       
             |service| requires this URL to configure the integration.
-      
-      #. Click :guilabel:`Done`
       
    .. include:: /includes/nav/steps-project-integrations.rst
       
